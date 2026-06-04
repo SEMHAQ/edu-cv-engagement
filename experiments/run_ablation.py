@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 """
-Ablation study runner.
-
-Runs all ablation experiments from the paper:
-1. Data augmentation: {none, flip_only, flip_rotation, full}
-2. Class balancing: {none, weighted_ce, focal, focal_weighted}
-3. Transfer learning: {random_init, imagenet_pretrained}
-4. CSAM effect: {with, without} × {MobileNetV3, EfficientNet-B0}
+Ablation study runner for multi-dataset experiments.
 
 Usage:
-    python3 run_ablation.py                          # Run all ablations
-    python3 run_ablation.py --ablation augmentation  # Run specific ablation
-    python3 run_ablation.py --dry-run                # Quick test
+    python3 run_ablation.py                          # All ablations, all datasets
+    python3 run_ablation.py --dataset fer2013         # Specific dataset
+    python3 run_ablation.py --ablation augmentation   # Specific ablation
+    python3 run_ablation.py --dry-run --cpu           # Quick test
 """
 
 import argparse
@@ -23,7 +18,7 @@ import time
 import torch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import DataConfig, TrainConfig, ModelConfig, AUGMENTATION_PRESETS
+from config import DataConfig, TrainConfig, ModelConfig, DATASET_EMOTION_MAPS
 from train import cross_validate, set_seed
 from models.mobilenetv3_csam import MobileNetV3CSAM
 from models.efficientnet_csam import EfficientNetCSAM
@@ -45,7 +40,7 @@ def run_augmentation_ablation(data_cfg, train_cfg, model_cfg, device):
             return MobileNetV3CSAM(
                 num_classes=data_cfg.num_classes,
                 pretrained=True,
-                use_csam=False,  # Base MobileNetV3 for this ablation
+                use_csam=False,
                 csam_reduction=model_cfg.csam_reduction,
                 head_hidden=model_cfg.head_hidden,
                 head_dropout=model_cfg.head_dropout,
@@ -192,16 +187,17 @@ def run_csam_ablation(data_cfg, train_cfg, model_cfg, device):
 
 def main():
     parser = argparse.ArgumentParser(description="Run ablation studies")
+    parser.add_argument("--dataset", type=str, nargs="+", default=None,
+                        help="Dataset(s): fer2013, rafdb, ckplus")
     parser.add_argument("--ablation", type=str, default=None,
-                        choices=["augmentation", "loss", "transfer", "csam"],
-                        help="Run specific ablation study")
+                        choices=["augmentation", "loss", "transfer", "csam"])
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--folds", type=int, default=None)
+    parser.add_argument("--batch-size", type=int, default=None)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--cpu", action="store_true")
     args = parser.parse_args()
 
-    data_cfg = DataConfig()
     train_cfg = TrainConfig()
     model_cfg = ModelConfig()
 
@@ -209,6 +205,8 @@ def main():
         train_cfg.seed = args.seed
     if args.folds:
         train_cfg.num_folds = args.folds
+    if args.batch_size:
+        train_cfg.batch_size = args.batch_size
     if args.dry_run:
         train_cfg.num_folds = 1
         train_cfg.stage1_epochs = 1
@@ -222,7 +220,9 @@ def main():
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
 
-    all_results = {}
+    # Select datasets
+    available_datasets = list(DATASET_EMOTION_MAPS.keys())
+    datasets = args.dataset if args.dataset else available_datasets
 
     ablation_fns = {
         "augmentation": run_augmentation_ablation,
@@ -236,12 +236,29 @@ def main():
     else:
         fns = ablation_fns
 
-    for name, fn in fns.items():
-        start = time.time()
-        result = fn(data_cfg, train_cfg, model_cfg, device)
-        elapsed = time.time() - start
-        all_results[name] = result
-        print(f"\n{name} ablation completed in {elapsed/60:.1f} minutes")
+    all_results = {}
+
+    for dataset_name in datasets:
+        print(f"\n{'='*70}")
+        print(f"DATASET: {dataset_name}")
+        print(f"{'='*70}")
+
+        data_cfg = DataConfig()
+        data_cfg.set_dataset(dataset_name)
+
+        if not os.path.isdir(data_cfg.processed_dir):
+            print(f"[SKIP] {dataset_name}: preprocessed data not found")
+            continue
+
+        dataset_results = {}
+        for name, fn in fns.items():
+            start = time.time()
+            result = fn(data_cfg, train_cfg, model_cfg, device)
+            elapsed = time.time() - start
+            dataset_results[name] = result
+            print(f"\n{name} ablation on {dataset_name} completed in {elapsed/60:.1f} min")
+
+        all_results[dataset_name] = dataset_results
 
         # Save incremental
         results_path = os.path.join(train_cfg.results_dir, "ablation_results.json")

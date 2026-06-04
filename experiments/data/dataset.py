@@ -1,4 +1,11 @@
-"""PyTorch Dataset and DataLoader for preprocessed DAiSEE face images."""
+"""
+PyTorch Dataset and DataLoader for normalized face images.
+
+Works with the folder structure produced by preprocess.py:
+    data/processed/{dataset}/{train,val,test}/{0,1,2,3}/*.jpg
+
+where 0=Engaged, 1=Boredom, 2=Frustration, 3=Confusion
+"""
 
 import os
 import random
@@ -15,8 +22,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import DataConfig, TrainConfig, AUGMENTATION_PRESETS
 
 
-class DAiSEEDataset(Dataset):
-    """Dataset for preprocessed DAiSEE face images."""
+class EngagementDataset(Dataset):
+    """Dataset for preprocessed face images in normalized folder structure."""
 
     def __init__(
         self,
@@ -125,10 +132,13 @@ def get_dataloaders(
     fold_idx: int = 0,
     use_weighted_sampler: bool = False,
 ) -> Dict[str, DataLoader]:
-    """Create train/val/test dataloaders."""
-    # Load all data
+    """Create train/val/test dataloaders from preprocessed folder structure."""
+    # Load all data (try "val" and "validation" for compatibility)
     train_paths, train_labels = scan_processed_dir(cfg.processed_dir, "train")
-    val_paths, val_labels = scan_processed_dir(cfg.processed_dir, "validation")
+    try:
+        val_paths, val_labels = scan_processed_dir(cfg.processed_dir, "val")
+    except FileNotFoundError:
+        val_paths, val_labels = scan_processed_dir(cfg.processed_dir, "validation")
     test_paths, test_labels = scan_processed_dir(cfg.processed_dir, "test")
 
     if train_cfg.num_folds <= 1:
@@ -157,9 +167,9 @@ def get_dataloaders(
     val_transform = build_transforms(cfg, augmentation_preset, is_train=False)
 
     # Create datasets
-    train_ds = DAiSEEDataset(fold_train_paths, fold_train_labels, train_transform)
-    val_ds = DAiSEEDataset(fold_val_paths, fold_val_labels, val_transform)
-    test_ds = DAiSEEDataset(test_paths, test_labels, val_transform)
+    train_ds = EngagementDataset(fold_train_paths, fold_train_labels, train_transform)
+    val_ds = EngagementDataset(fold_val_paths, fold_val_labels, val_transform)
+    test_ds = EngagementDataset(test_paths, test_labels, val_transform)
 
     # Create dataloaders
     train_sampler = None
