@@ -34,7 +34,7 @@ def main():
     )
     args = parser.parse_args()
 
-    datasets = [args.dataset] if args.dataset else ["fer2013", "rafdb", "ckplus"]
+    datasets = [args.dataset] if args.dataset else ["fer2013", "ckplus"]
 
     for name in datasets:
         raw_dir = os.path.join(PROJECT_ROOT, "data", name)

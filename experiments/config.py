@@ -39,16 +39,16 @@ RAFDB_EMOTION_MAP = {
 CKPLUS_EMOTION_MAP = {
     5: 0,  # Happy    → Engaged
     0: 1,  # Neutral  → Boredom
+    2: 1,  # Contempt → Boredom (proxy: CK+ has no neutral in Kaggle version)
     6: 2,  # Sad      → Frustration
     1: 2,  # Anger    → Frustration
     7: 3,  # Surprise → Confusion
     4: 3,  # Fear     → Confusion
-    # 2:Contempt, 3:Disgust → excluded
+    # 3:Disgust → excluded
 }
 
 DATASET_EMOTION_MAPS = {
     "fer2013": FER2013_EMOTION_MAP,
-    "rafdb": RAFDB_EMOTION_MAP,
     "ckplus": CKPLUS_EMOTION_MAP,
 }
 
