@@ -39,7 +39,8 @@ def set_seed(seed: int):
     torch.backends.cuda.matmul.allow_tf32 = True
 
 
-def train_one_epoch(model, dataloader, criterion, optimizer, device, freeze_bn: bool = False):
+def train_one_epoch(model, dataloader, criterion, optimizer, device,
+                    freeze_bn: bool = False, grad_clip_norm: float = 0.0):
     """Train for one epoch, return average loss and accuracy."""
     model.train()
     if freeze_bn:
@@ -56,6 +57,10 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device, freeze_bn: 
         outputs = model(images)
         loss = criterion(outputs, labels)
         loss.backward()
+
+        if grad_clip_norm > 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip_norm)
+
         optimizer.step()
 
         total_loss += loss.item() * images.size(0)
@@ -107,7 +112,10 @@ def train_fold(
 ) -> dict:
     """Train model for one fold. Returns best validation metrics."""
     class_weights = loaders["class_weights"].to(device)
-    criterion = build_loss(loss_type, class_weights=class_weights, gamma=cfg.focal_gamma)
+    criterion = build_loss(
+        loss_type, class_weights=class_weights,
+        gamma=cfg.focal_gamma, label_smoothing=cfg.label_smoothing,
+    )
 
     logger = ExperimentLogger(cfg.results_dir, f"fold_{fold_idx}")
     logger.log_config({
@@ -131,7 +139,10 @@ def train_fold(
     scheduler = CosineAnnealingLR(optimizer, T_max=cfg.stage1_epochs)
 
     for epoch in range(cfg.stage1_epochs):
-        train_loss, train_acc = train_one_epoch(model, loaders["train"], criterion, optimizer, device)
+        train_loss, train_acc = train_one_epoch(
+            model, loaders["train"], criterion, optimizer, device,
+            grad_clip_norm=cfg.grad_clip_norm,
+        )
         scheduler.step()
 
         val_metrics = evaluate(model, loaders["val"], criterion, device, data_cfg.num_classes)
@@ -161,7 +172,10 @@ def train_fold(
     scheduler = CosineAnnealingLR(optimizer, T_max=cfg.stage2_epochs)
 
     for epoch in range(cfg.stage2_epochs):
-        train_loss, train_acc = train_one_epoch(model, loaders["train"], criterion, optimizer, device, freeze_bn=True)
+        train_loss, train_acc = train_one_epoch(
+            model, loaders["train"], criterion, optimizer, device,
+            freeze_bn=True, grad_clip_norm=cfg.grad_clip_norm,
+        )
         scheduler.step()
 
         val_metrics = evaluate(model, loaders["val"], criterion, device, data_cfg.num_classes)
@@ -201,7 +215,7 @@ def cross_validate(
     device: torch.device,
     loss_type: str = "focal_weighted",
     augmentation_preset: str = "full",
-    use_weighted_sampler: bool = False,
+    use_weighted_sampler: bool = True,
 ) -> dict:
     """Run k-fold cross-validation. Returns aggregated results."""
     all_val_metrics = []

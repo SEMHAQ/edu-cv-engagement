@@ -103,9 +103,11 @@ class TrainConfig:
 
     # Optimizer
     weight_decay: float = 1e-4
+    grad_clip_norm: float = 1.0
 
     # Focal weighted loss
-    focal_gamma: float = 2.0
+    focal_gamma: float = 1.0
+    label_smoothing: float = 0.1
 
     # Paths
     checkpoint_dir: str = os.path.join(PROJECT_ROOT, "experiments", "checkpoints")
