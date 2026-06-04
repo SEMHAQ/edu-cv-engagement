@@ -130,7 +130,7 @@ def train_fold(
 
     # ---- Stage 1: Train head only ----
     print(f"\n  [Fold {fold_idx}] Stage 1: Training head ({cfg.stage1_epochs} epochs, LR={cfg.stage1_lr})")
-    model.freeze_backbone()
+    # model.freeze_backbone()  # Disabled: causes collapse
     optimizer = Adam(
         filter(lambda p: p.requires_grad, model.parameters()),
         lr=cfg.stage1_lr,
@@ -160,8 +160,8 @@ def train_fold(
 
     # ---- Stage 2: Fine-tune backbone ----
     print(f"  [Fold {fold_idx}] Stage 2: Fine-tuning ({cfg.stage2_epochs} epochs, LR={cfg.stage2_lr})")
-    model.unfreeze_last_n_blocks(cfg.unfreeze_blocks)
-    model.freeze_bn()  # Keep BN running stats frozen to prevent collapse
+    # model.unfreeze_last_n_blocks(cfg.unfreeze_blocks)  # Not needed: backbone not frozen
+    model.freeze_bn()  # Keep BN frozen to prevent collapse
     optimizer = Adam(
         [
             {"params": model.get_backbone_params(), "lr": cfg.stage2_lr},

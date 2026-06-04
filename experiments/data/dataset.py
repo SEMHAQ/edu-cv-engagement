@@ -152,6 +152,13 @@ def get_dataloaders(
         all_paths = train_paths + val_paths
         all_labels = train_labels + val_labels
 
+        # Shuffle before splitting to ensure class balance across folds
+        import random
+        combined = list(zip(all_paths, all_labels))
+        random.shuffle(combined)
+        all_paths, all_labels = zip(*combined)
+        all_paths, all_labels = list(all_paths), list(all_labels)
+
         n = len(all_paths)
         fold_size = n // train_cfg.num_folds
         val_start = fold_idx * fold_size
