@@ -1,23 +1,13 @@
 % !TEX program = pdflatex
-% Deep Learning for Student Engagement Detection: A Lightweight Approach
-% Target Journal: MDPI Applied Sciences
-% Citation style: Numbered
+% MDPI Applied Sciences
 
 \documentclass[applsci,article,submit,moreauthors,pdftex]{Definitions/mdpi}
 
-% Custom commands for back matter not in this cls version
-\newcommand{\ethics}[1]{%
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Ethical Statement:} {#1}\par}}
-\newcommand{\aidisclosure}[1]{%
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{AI Disclosure:} {#1}\par}}
-\usepackage{CJKutf8}
-
-% MDPI metadata
+% ---------- MDPI metadata ----------
 \firstpage{1}
 \makeatletter
-\setcounter{page}{1}
+\setcounter{page}{\@firstpage}
 \makeatother
-
 \pubvolume{16}
 \issuenum{11}
 \articlenumber{XXXX}
@@ -27,21 +17,27 @@
 \dateaccepted{XX Month 2026}
 \datepublished{XX Month 2026}
 
+% ---------- Title ----------
 \Title{Deep Learning for Student Engagement Detection: A Lightweight CNN Approach for Educational Environments}
 
-\Author{First Author $^{1}$}
+% ---------- Authors ----------
+\Author{Donghai Peng $^{1}$ and Huanjie Yu $^{2,}$*}
+\AuthorNames{Donghai Peng and Huanjie Yu}
+\address{%
+$^{1}$ \quad School of Information Engineering, Shaoguan University, Shaoguan, Guangdong 512005, China\\
+$^{2}$ \quad School of Computer Science, Hunan University of Technology and Business, Changsha, Hunan 410205, China}
+\corres{Correspondence: semhaqx@gmail.com}
 
-\AuthorNames{First Author}
-
-\address{$^{1}$ Department of Computer Science, University Name, City, Country}
-
-\corres{Correspondence: email@university.edu}
-
+% ---------- Abstract (English) ----------
 \abstract{Automated student engagement detection from facial expressions is needed for real-time monitoring in educational environments. This paper proposes a lightweight deep learning framework integrating MobileNetV3 and EfficientNet-B0 with a novel Channel-Spatial Attention Module (CSAM) and focal weighted loss for engagement recognition. We evaluate on the DAiSEE benchmark (9068 video clips with engagement, boredom, confusion, and frustration labels). Our method uses transfer learning from ImageNet with data augmentation and focal weighted loss for joint class balancing and hard-example mining. MobileNetV3+CSAM achieves 74.6\% accuracy on the four-class task with 2.6M parameters, surpassing ResNet-50 (71.5\%, 25.6M parameters) by 3.1\%. EfficientNet-B0+CSAM reaches 75.8\% with 5.4M parameters. CSAM contributes 1.7--1.8\% accuracy gain with 0.3\% parameter overhead. Ablation studies confirm the contributions of data augmentation (+4.3\%), focal weighted loss (+4.4\% F1 on minority classes), and transfer learning (+10.4\%). These results demonstrate that lightweight CNNs with task-specific attention provide effective, deployable solutions for engagement monitoring on edge devices.}
 
 \keyword{student engagement; deep learning; facial expression recognition; MobileNetV3; EfficientNet; DAiSEE; lightweight CNN; educational technology}
 
-% Chinese abstract (rendered via CJK at end of document)
+% ---------- Chinese abstract ----------
+
+
+
+
 
 \begin{document}
 
@@ -213,11 +209,11 @@ All models are implemented using PyTorch and trained on a single NVIDIA RTX 3060
 \section{Results}
 \label{sec:results}
 
-\subsection{Dataset}
+\subs
 
-We evaluate our approach on the DAiSEE (Dataset for Affective States in E-Environments) dataset~\cite{solanki2022engagement}. DAiSEE is a multi-label video classification dataset containing 9068 video clips captured from 112 users watching MOOC lectures. Each clip is annotated with four affective states: boredom, confusion, engagement, and frustration, each at four intensity levels (0--3).
+... [OUTPUT TRUNCATED - 450 chars omitted out of 50450 total] ...
 
-For our experiments, we follow the standard protocol and use the provided train/validation/test split (70\%/15\%/15\%). We extract one frame per second from each video clip and use the extracted frames as individual training samples, resulting in approximately 63,000 training images, 13,500 validation images, and 13,500 test images.
+dard protocol and use the provided train/validation/test split (70\%/15\%/15\%). We extract one frame per second from each video clip and use the extracted frames as individual training samples, resulting in approximately 63,000 training images, 13,500 validation images, and 13,500 test images.
 
 Table~\ref{tab:dataset} summarizes the class distribution in the DAiSEE dataset.
 
@@ -531,9 +527,9 @@ Future work will focus on incorporating temporal modeling, multimodal fusion, an
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vspace{6pt}
 
-\authorcontributions{Conceptualization, F.A.; methodology, F.A.; software, F.A.; validation, F.A.; formal analysis, F.A.; investigation, F.A.; resources, F.A.; data curation, F.A.; writing---original draft preparation, F.A.; writing---review and editing, F.A.; visualization, F.A.; supervision, F.A.; project administration, F.A.; funding acquisition, F.A. All authors have read and agreed to the published version of the manuscript.}
+\authorcontributions{Conceptualization, D.P. and H.Y.; Methodology, H.Y.; Software, H.Y.; Validation, D.P.; Writing, H.Y.; Supervision, D.P.; Funding Acquisition, D.P. All authors have read and agreed to the published version of the manuscript.}
 
-\funding{This research received no external funding.}
+\funding{This research was funded by the National Social Science Fund of China (grant no. 21BGL231) and Xiangjiang Laboratory (grant no. 23XJ01001).}
 
 \dataavailability{The DAiSEE dataset used in this study is publicly available at \url{https://cvit.iiit.ac.in/research/projects/cvit-projects/daisee-dataset} (accessed on 4 June 2026). The source code for model implementation is available from the corresponding author upon request.}
 
@@ -545,17 +541,96 @@ Future work will focus on incorporating temporal modeling, multimodal fusion, an
 
 \aidisclosure{This paper was prepared with the assistance of AI language models for literature search, writing support, and figure generation. All scientific content, experimental results, and conclusions were verified and validated by the authors. The AI tools used include Claude (Anthropic) for drafting assistance and Python matplotlib for figure generation.}
 
-% Chinese abstract section (placed after back matter)
-\begin{CJK}{UTF8}{gbsn}
-\vspace{12pt}
-\noindent\textbf{中文摘要:}\par
-\noindent 学生参与度是影响学习成效的关键因素。本文提出一种融合通道-空间注意力模块（CSAM）和焦点加权损失的轻量级深度学习框架，基于MobileNetV3和EfficientNet-B0实现学生参与度检测。该方法利用ImageNet预训练模型进行迁移学习，通过CSAM自适应加权判别性面部区域和特征通道，并采用焦点加权损失联合处理类别不平衡和困难样本挖掘。实验结果表明，MobileNetV3+CSAM在DAiSEE数据集四分类任务中达到74.6\%准确率，仅需2.6M参数，超越ResNet-50（71.5\%，25.6M参数）3.1个百分点。EfficientNet-B0+CSAM达到75.8\%准确率。CSAM模块以0.3\%的参数开销贡献1.7--1.8\%的准确率提升，焦点加权损失在少数类上提升4.4\%的F1值。结果证实，融合任务特定注意力的轻量级CNN可作为教育环境中边缘设备实时参与度监测的有效解决方案。
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\abbreviations{Abbreviations}{
+\begin{tabular}{@{}ll}
+CNN & Convolutional Neural Network \\
+CSAM & Channel-Spatial Attention Module \\
+DAiSEE & Dataset for Affective States in E-Environments \\
+MACs & Multiply-Accumulate Operations \\
+MTCNN & Multi-task Cascaded Convolutional Networks \\
+SE & Squeeze-and-Excitation \\
+\end{tabular}
+}
 
-\vspace{6pt}
-\noindent\textbf{关键词:} 学生参与度；深度学习；面部表情识别；MobileNetV3；EfficientNet；DAiSEE；轻量级卷积神经网络；教育技术
-\end{CJK}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{thebibliography}{999}
 
-\externalbibliography{yes}
-\bibliography{references}
+\bibitem{fredricks2004school}
+Fredricks, Jennifer A.; Blumenfeld, Phyllis C.; Paris, Alison H.. {\textit{School Engagement: Potential of the Concept, State of the Evidence}}. {\textit{Review of Educational Research}} \textbf{2004}, {\textit{74}}(1), 59---109.
+
+\bibitem{whitehill2014faces}
+Whitehill, Jacob; Serpell, Zewelanji; Lin, Yi-Ching; Foster, Aysha; Movellan, Javier R.. {\textit{The Faces of Engagement: Automatic Recognition of Student Engagement from Facial Expressions}}. {\textit{IEEE Transactions on Affective Computing}} \textbf{2014}, {\textit{5}}(1), 86---98.
+
+\bibitem{deng2009imagenet}
+Deng, Jia; Dong, Wei; Socher, Richard; Li, Li-Jia; Li, Kai; Fei-Fei, Li. {\textit{{ImageNet}}. {\textit{2009 IEEE Conference on Computer Vision and Pattern Recognition}} \textbf{2009}, 248---255.
+
+\bibitem{russakovsky2015imagenet}
+Russakovsky, Olga; Deng, Jia; Su, Hao; Krause, Jonathan; Satheesh, Sanjeev; Ma, Sean; Huang, Zhiheng; Karpathy, Andrej; Khosla, Aditya; Bernstein, Michael; Berg, Alexander C.; Fei-Fei, Li. {\textit{{ImageNet}}. {\textit{International Journal of Computer Vision}} \textbf{2015}, {\textit{115}}(3), 211---252.
+
+\bibitem{howard2017mobilenets}
+Howard, Andrew G.; Zhu, Menglong; Chen, Bo; Kalenichenko, Dmitry; Wang, Weijun; Weyand, Tobias; Andreetto, Marco; Adam, Hartwig. {\textit{{MobileNets}}. {\textit{arXiv preprint arXiv:1704.04861}} \textbf{2017}.
+
+\bibitem{sandler2018mobilenetv2}
+Sandler, Mark; Howard, Andrew; Zhu, Menglong; Zhmoginov, Andrey; Chen, Liang-Chieh. {\textit{{MobileNetV2}}. In Proceedings of 2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2018.
+
+\bibitem{howard2019mobilenetv3}
+Howard, Andrew; Sandler, Mark; Chen, Bo; Wang, Weijun; Chen, Liang-Chieh; Tan, Mingxing; Chu, Grace; Vasudevan, Vijay; Zhu, Yukun; Pang, Ruoming; Adam, Hartwig; Le, Quoc. {\textit{Searching for {MobileNetV3}}. In Proceedings of Proceedings of the IEEE/CVF International Conference on Computer Vision, 2019.
+
+\bibitem{tan2019efficientnet}
+Tan, Mingxing; Le, Quoc V.. {\textit{{EfficientNet}}. In Proceedings of Proceedings of the 36th International Conference on Machine Learning, 2019.
+
+\bibitem{tonguc2020automatic}
+Tongu\c{c. {\textit{Automatic Recognition of Student Emotions from Facial Expressions during a Lecture}}. {\textit{Computers \& Education}} \textbf{2020}, {\textit{148}}, 103797.
+
+\bibitem{solanki2022engagement}
+Solanki, Naman; Mandal, Souraj. {\textit{Engagement Analysis Using {DAiSEE}}. In Proceedings of 2022 17th International Conference on Control, Automation, Robotics and Vision (ICARCV), 2022.
+
+\bibitem{santoni2023cnn}
+Santoni, Mayanda Mega; Basaruddin, T.; Junus, Kasiyah. {\textit{Convolutional Neural Network Model based Students' Engagement Detection in Imbalanced {DAiSEE}}. {\textit{International Journal of Advanced Computer Science and Applications}} \textbf{2023}, {\textit{14}}(3).
+
+\bibitem{mandia2024deep}
+Mandia, Sandeep; Singh, Kuldeep; Mitharwal, Rajendra. {\textit{Deep Learning-Based Student Engagement Classification in Online Learning}}. {\textit{International Journal of Pattern Recognition and Artificial Intelligence}} \textbf{2024}, {\textit{38}}(13), 2452026.
+
+\bibitem{manu2026video}
+Manu, Gerlan Apriandy; Setyosari, Punaji; Ulfa, Saida; Praherdhiono, Henry. {\textit{Developing A Video-Based Discussion Platform With Emotion Detection Deep Learning To Increase Online Learning Engagement}}. {\textit{Online Learning}} \textbf{2026}, {\textit{30}}(2).
+
+\bibitem{bengio2013representation}
+Bengio, Yoshua; Courville, Aaron; Vincent, Pascal. {\textit{Representation Learning: A Review and New Perspectives}}. {\textit{IEEE Transactions on Pattern Analysis and Machine Intelligence}} \textbf{2013}, {\textit{35}}(8), 1798---1828.
+
+\bibitem{kleinsmith2013affective}
+Kleinsmith, Andrea; Bianchi-Berthouze, Nadia. {\textit{Affective Body Expression Perception and Recognition: A Survey}}. {\textit{IEEE Transactions on Affective Computing}} \textbf{2013}, {\textit{4}}(1), 15---33.
+
+\bibitem{jampour2022multiview}
+Jampour, Mahdi; Javidi, Malihe. {\textit{Multiview Facial Expression Recognition, A Survey}}. {\textit{IEEE Transactions on Affective Computing}} \textbf{2022}, {\textit{14}}(4), 2797---2816.
+
+\bibitem{zhao2025classroom}
+Zhao, Zibo. {\textit{Convolutional Neural Network based Facial Expression Recognition for Student Engagement Evaluation in Higher Vocational English Classroom}}. In Proceedings of 2025 4th International Conference on Distributed Computing and Electrical Circuits and Electronics (ICDCECE), 2025.
+
+\bibitem{dhebe2025engagement}
+Dhebe, Pranav; Jadhav, Dattaraj; Magdum, Sairaj; Kolase, Kedar; Sable, Nilesh; Yenkikar, Anuradha. {\textit{Engagement and Attention Level Detection on the {DAiSEE}}. In Proceedings of 2025 International Conference on Emerging Technologies and Innovation for Sustainability (EmergIN), 2025.
+
+\bibitem{setiaputri2025deep}
+Setiaputri, Grace; Mackenzie, Jason Chrisbellno; Edbert, Ivan Sebastian; Suhartono, Derwin. {\textit{Deep Learning-Based Facial Expression Recognition for Analyzing Visitor Engagement}}. In Proceedings of Proceedings of the 1st International Conference on Research and Innovations in Information and Engineering Technology, 2025.
+
+\bibitem{liang2023survey}
+Liang, Chengxu; Dong, Jianshe. {\textit{A Survey of Deep Learning-based Facial Expression Recognition Research}}. {\textit{Frontiers in Computing and Intelligent Systems}} \textbf{2023}, {\textit{5}}(2).
+
+\bibitem{chen2023resnet}
+Chen, Yixuan. {\textit{Facial Expression Recognition based on {ResNet}}. {\textit{Applied and Computational Engineering}} \textbf{2023}, {\textit{22}}, 73---80.
+
+\bibitem{podder2022time}
+Podder, Tanusree; Bhattacharya, Diptendu; Majumdar, Abhishek. {\textit{Time Efficient Real Time Facial Expression Recognition with {CNN}}. {\textit{S\={a}} \textbf{2022}, {\textit{47}}(3), 1---14.
+
+\bibitem{li2021facial}
+Li, Bin. {\textit{Facial Expression Recognition via Transfer Learning}}. {\textit{EAI Endorsed Transactions on e-Learning}} \textbf{2021}, {\textit{7}}(21).
+
+\bibitem{dixson2015measuring}
+Dixson, Marcia D.. {\textit{Measuring Student Engagement in the Online Course: The Online Student Engagement Scale ({OSE}}. {\textit{Online Learning}} \textbf{2015}, {\textit{19}}(4).
+
+\bibitem{papadopoulos2013learner}
+Papadopoulos, Fotios; Corrigan, Lee J.; Jones, Aidan; Castellano, Ginevra. {\textit{Learner Modelling and Automatic Engagement Recognition with Robotic Tutors}}. In Proceedings of 2013 Humaine Association Conference on Affective Computing and Intelligent Interaction, 2013.
+
+\end{thebibliography}
 
 \end{document}
