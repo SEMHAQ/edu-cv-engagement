@@ -210,11 +210,17 @@ After mapping FER2013 emotions to engagement classes, the dataset exhibits moder
 
 \subsection{Implementation Details}
 
-All models are implemented using PyTorch 2.0 and trained on a single NVIDIA RTX 3090 GPU (24\,GB). The input images are resized to 224$\times$224 pixels and normalized using ImageNet statis
+All models are implemented using PyTorch 2.0 and trained on a single NVIDIA RTX 3090 GPU (24\,GB). The input images are resized to 224$\times$224 pixels and normalized using ImageNet statistics. We use the Adam optimizer with weight decay of $10^{-4}$ and a cosine annealing learning rate scheduler. The batch size is set to 64, and training continues for 40 epochs (10 for head-only, 30 for fine-tuning). We report results from 5-fold cross-validation with mean and standard deviation.
 
-... [OUTPUT TRUNCATED - 1994 chars omitted out of 51994 total] ...
+\subsection{Dataset}
 
-\
+We evaluate on the FER2013 dataset~\cite{goodfellow2013challenges}, which contains 35,340 grayscale facial images (48$\times$48 pixels) labeled with seven emotions. We map these to four engagement classes: Happy$\rightarrow$Engaged, Neutral$\rightarrow$Boredom, Sad+Anger$\rightarrow$Frustration, Surprise+Fear+Disgust$\rightarrow$Confusion. We also evaluate cross-dataset generalization on CK+~\cite{lucey2010ck} (804 images). Table~\ref{tab:dataset} summarizes the class distribution.
+
+\begin{table}[H]
+\caption{Class distribution across datasets after emotion-to-engagement mapping.}\label{tab:dataset}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Class} & \textbf{FER2013} & \textbf{\%} & \textbf{CK+} & \textbf{\%} \\
 \midrule
 Engaged (0) & 8,989 & 25.4\% & 207 & 25.7\% \\
 Boredom (1) & 6,198 & 17.5\% & 42 & 5.2\% \\
