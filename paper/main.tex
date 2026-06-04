@@ -364,20 +364,22 @@ Data augmentation improves accuracy by 3.8\% (from 61.7\% to 65.5\%), confirming
 Table~\ref{tab:balancing} demonstrates the impact of class balancing strategies on MobileNetV3-Small performance.
 
 \begin{table}[H]
-\caption{Effect of class balancing strategies on MobileNetV3-Small (FER2013, F1 macro-averaged). Focal weighted loss with weighted sampling achieves the best overall performance.}
+\caption{Effect of class balancing strategies on MobileNetV3-Small (FER2013, F1 macro-averaged).}
 \label{tab:balancing}
-\begin{tabular}{lccccc}
+\centering
+\small
+\begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
 \toprule
-\textbf{Strategy} & \textbf{Acc. (\%)} & \textbf{F1 (\%)} & \textbf{F1-Boredom (\%)} & \textbf{F1-Confusion (\%)} \\
+\textbf{Strategy} & \textbf{Acc.} & \textbf{F1} & \textbf{F1-Bor.} & \textbf{F1-Con.} \\
 \midrule
 No balancing & 60.2 & 55.8 & 42.1 & 50.3 \\
 Weighted CE & 64.5 & 63.2 & 58.7 & 59.1 \\
-Focal loss ($\gamma$=2) & 63.8 & 62.5 & 57.9 & 58.4 \\
-Weighted sampler only & 63.2 & 61.8 & 56.5 & 57.2 \\
+Focal ($\gamma$=2) & 63.8 & 62.5 & 57.9 & 58.4 \\
+Sampler only & 63.2 & 61.8 & 56.5 & 57.2 \\
 \midrule
-\textbf{Focal weighted + sampler (ours)} & \textbf{65.5} & \textbf{64.0} & \textbf{60.2} & \textbf{61.5} \\
+\textbf{Focal+sampler (ours)} & \textbf{65.5} & \textbf{64.0} & \textbf{60.2} & \textbf{61.5} \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 The focal weighted loss with weighted sampling outperforms standard weighted CE by 0.8\% F1 overall and 1.5\% F1 on the minority Boredom class. The gain comes from jointly addressing class imbalance (via class weights and balanced sampling) and hard-example mining (via focal modulation with label smoothing). The improvement on the Confusion class (2.4\% F1) is also notable, as Confusion samples are often visually subtle and share features with Frustration.
