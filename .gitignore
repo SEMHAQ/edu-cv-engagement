@@ -1,4 +1,42 @@
+# ===== Claude Code (local only) =====
 .claude/
 CLAUDE.md
-*.aux *.log *.out *.toc *.bbl *.blg *.fls *.fdb_latexmk *.synctex.gz
-__pycache__/ *.pyc .DS_Store Thumbs.db
+
+# ===== MDPI template source (not paper content) =====
+MDPI_template_ACS/
+MDPI_template_ACS.zip
+mdpi_template.zip
+paper/template_ref.tex
+
+# ===== Generated / build artifacts =====
+paper/peer_review/
+paper/COMPLETION_REPORT.md
+paper/main.pdf
+
+# ===== LaTeX build artifacts =====
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.nav
+*.snm
+*.vrb
+
+# ===== LaTeX build artifacts in Definitions/ =====
+paper/Definitions/logo-mdpi-eps-converted-to.pdf
+
+# ===== Old/duplicate =====
+/Definitions/
+/data/
+/figures/
+
+# ===== OS / Python =====
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
