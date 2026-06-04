@@ -109,7 +109,7 @@ class TrainConfig:
 
     # Paths
     checkpoint_dir: str = os.path.join(PROJECT_ROOT, "experiments", "checkpoints")
-    results_dir: str = os.path.join(PROJECT_ROOT, "experiments", "results")
+    results_dir: str = os.path.join(PROJECT_ROOT, "experiments", "results", "default")
 
 
 @dataclass
@@ -159,7 +159,7 @@ AUGMENTATION_PRESETS = {
         "rotation": 15,
         "brightness": 0.2,
         "contrast": 0.2,
-        "crop_scale": (0.8, 1.0),
+        "crop_scale": (0.9, 1.0),  # Mild crop for small 48x48 images
         "hue": 0.1,
     },
 }

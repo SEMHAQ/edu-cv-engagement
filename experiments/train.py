@@ -39,9 +39,11 @@ def set_seed(seed: int):
     torch.backends.cuda.matmul.allow_tf32 = True
 
 
-def train_one_epoch(model, dataloader, criterion, optimizer, device):
+def train_one_epoch(model, dataloader, criterion, optimizer, device, freeze_bn: bool = False):
     """Train for one epoch, return average loss and accuracy."""
     model.train()
+    if freeze_bn:
+        model.freeze_bn()  # Re-freeze BN after model.train() sets everything to train mode
     total_loss = 0.0
     correct = 0
     total = 0
@@ -148,6 +150,7 @@ def train_fold(
     # ---- Stage 2: Fine-tune backbone ----
     print(f"  [Fold {fold_idx}] Stage 2: Fine-tuning ({cfg.stage2_epochs} epochs, LR={cfg.stage2_lr})")
     model.unfreeze_last_n_blocks(cfg.unfreeze_blocks)
+    model.freeze_bn()  # Keep BN running stats frozen to prevent collapse
     optimizer = Adam(
         [
             {"params": model.get_backbone_params(), "lr": cfg.stage2_lr},
@@ -158,7 +161,7 @@ def train_fold(
     scheduler = CosineAnnealingLR(optimizer, T_max=cfg.stage2_epochs)
 
     for epoch in range(cfg.stage2_epochs):
-        train_loss, train_acc = train_one_epoch(model, loaders["train"], criterion, optimizer, device)
+        train_loss, train_acc = train_one_epoch(model, loaders["train"], criterion, optimizer, device, freeze_bn=True)
         scheduler.step()
 
         val_metrics = evaluate(model, loaders["val"], criterion, device, data_cfg.num_classes)

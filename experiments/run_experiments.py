@@ -20,7 +20,7 @@ import time
 import torch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import DataConfig, TrainConfig, ModelConfig, DATASET_EMOTION_MAPS
+from config import DataConfig, TrainConfig, ModelConfig, DATASET_EMOTION_MAPS, PROJECT_ROOT
 from train import cross_validate, set_seed
 from models.mobilenetv3_csam import MobileNetV3CSAM
 from models.efficientnet_csam import EfficientNetCSAM
@@ -218,6 +218,10 @@ def main():
 
         data_cfg = DataConfig()
         data_cfg.set_dataset(dataset_name)
+
+        # Dataset-specific results directory
+        train_cfg.results_dir = os.path.join(PROJECT_ROOT, "experiments", "results", dataset_name)
+        os.makedirs(train_cfg.results_dir, exist_ok=True)
 
         # Check if preprocessed data exists
         if not os.path.isdir(data_cfg.processed_dir):

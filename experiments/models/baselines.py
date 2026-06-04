@@ -33,6 +33,11 @@ class VGG16Baseline(nn.Module):
         for p in self.backbone.features.parameters():
             p.requires_grad = False
 
+    def freeze_bn(self):
+        for m in self.backbone.features.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.eval()
+
     def unfreeze_last_n_blocks(self, n: int = 3):
         self.freeze_backbone()
         features = list(self.backbone.features.children())
@@ -71,11 +76,15 @@ class ResNet50Baseline(nn.Module):
             if "fc" not in name:
                 p.requires_grad = False
 
+    def freeze_bn(self):
+        for m in self.backbone.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.eval()
+
     def unfreeze_last_n_blocks(self, n: int = 3):
         self.freeze_backbone()
-        # Unfreeze layer4 and possibly layer3
         children = list(self.backbone.children())
-        for child in children[-(n + 1):-1]:  # skip fc
+        for child in children[-(n + 1):-1]:
             for p in child.parameters():
                 p.requires_grad = True
 
@@ -130,6 +139,11 @@ class CNNLSTMBaseline(nn.Module):
     def freeze_backbone(self):
         for p in self.cnn.parameters():
             p.requires_grad = False
+
+    def freeze_bn(self):
+        for m in self.cnn.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.eval()
 
     def unfreeze_last_n_blocks(self, n: int = 3):
         self.freeze_backbone()
@@ -201,6 +215,11 @@ class ThreeDCNNBaseline(nn.Module):
     def freeze_backbone(self):
         for p in self.features.parameters():
             p.requires_grad = False
+
+    def freeze_bn(self):
+        for m in self.features.modules():
+            if isinstance(m, (nn.BatchNorm3d, nn.BatchNorm2d)):
+                m.eval()
 
     def unfreeze_last_n_blocks(self, n: int = 3):
         self.freeze_backbone()

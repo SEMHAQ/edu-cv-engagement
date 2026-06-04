@@ -80,6 +80,12 @@ class EfficientNetCSAM(nn.Module):
         for p in self.features.parameters():
             p.requires_grad = False
 
+    def freeze_bn(self):
+        """Set all BatchNorm layers to eval mode (freeze running stats)."""
+        for m in self.features.modules():
+            if isinstance(m, torch.nn.BatchNorm2d):
+                m.eval()
+
     def unfreeze_last_n_blocks(self, n: int = 3):
         self.freeze_backbone()
         total = len(self.features)

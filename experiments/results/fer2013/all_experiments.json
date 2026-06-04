@@ -1,0 +1,71 @@
+{
+  "fer2013": {
+    "mobilenetv3_csam": {
+      "num_folds": 1,
+      "val_accuracy": "30.8 \u00b1 0.0",
+      "val_precision": "25.5 \u00b1 0.0",
+      "val_recall": "25.1 \u00b1 0.0",
+      "val_f1": "12.0 \u00b1 0.0",
+      "val_accuracy_raw": [
+        0.30825471698113205,
+        0.0
+      ],
+      "val_f1_raw": [
+        0.11985842338946133,
+        0.0
+      ],
+      "val_per_class_f1": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.4703757225433526,
+          0.0
+        ],
+        [
+          0.009057971014492754,
+          0.0
+        ]
+      ],
+      "test_accuracy": "31.2 \u00b1 0.0",
+      "test_precision": "26.6 \u00b1 0.0",
+      "test_recall": "25.0 \u00b1 0.0",
+      "test_f1": "12.0 \u00b1 0.0",
+      "test_accuracy_raw": [
+        0.3124380925428046,
+        0.0
+      ],
+      "test_f1_raw": [
+        0.11976458934976247,
+        0.0
+      ],
+      "test_per_class_f1": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.47583081570996977,
+          0.0
+        ],
+        [
+          0.0032275416890801506,
+          0.0
+        ]
+      ],
+      "experiment": "mobilenetv3_csam",
+      "dataset": "fer2013",
+      "description": "MobileNetV3-Small + CSAM (proposed)",
+      "training_time_minutes": 16.02576016187668
+    }
+  }
+}
