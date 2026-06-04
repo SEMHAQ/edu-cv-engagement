@@ -107,7 +107,7 @@ def train_fold(
     data_cfg: DataConfig,
     fold_idx: int,
     device: torch.device,
-    loss_type: str = "focal_weighted",
+    loss_type: str = "weighted_ce",
     augmentation_preset: str = "full",
 ) -> dict:
     """Train model for one fold. Returns best validation metrics."""
@@ -213,7 +213,7 @@ def cross_validate(
     cfg: TrainConfig,
     data_cfg: DataConfig,
     device: torch.device,
-    loss_type: str = "focal_weighted",
+    loss_type: str = "weighted_ce",
     augmentation_preset: str = "full",
     use_weighted_sampler: bool = True,
 ) -> dict:
