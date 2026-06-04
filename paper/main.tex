@@ -2,6 +2,7 @@
 % MDPI Applied Sciences
 
 \documentclass[applsci,article,submit,moreauthors,pdftex]{Definitions/mdpi}
+\usepackage{tabularx}
 
 % ---------- MDPI metadata ----------
 \firstpage{1}
@@ -31,7 +32,7 @@ $^{2}$ \quad School of Computer Science, Hunan University of Technology and Busi
 % ---------- Abstract (English) ----------
 \abstract{Automated student engagement detection from facial expressions is needed for real-time monitoring in educational environments. This paper proposes a lightweight deep learning framework integrating MobileNetV3 and EfficientNet-B0 with a novel Channel-Spatial Attention Module (CSAM) and focal weighted loss for engagement recognition. We map the FER2013 facial expression dataset (35,340 images) and CK+ dataset (804 images) to a four-class engagement taxonomy (Engaged, Boredom, Frustration, Confusion) via an emotion-to-engagement mapping. Our method uses two-stage transfer learning from ImageNet, data augmentation, focal weighted loss with label smoothing, and weighted sampling for joint class balancing and hard-example mining. MobileNetV3+CSAM achieves 70.5\% accuracy on the four-class task with 1.26M parameters and 0.13G FLOPs. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. CSAM contributes 1.5--1.8\% accuracy gain with 0.3\% parameter overhead. Ablation studies confirm the contributions of data augmentation (+3.8\%), focal weighted loss (+3.5\% F1 on minority classes), and transfer learning (+9.2\%). Cross-dataset evaluation on CK+ confirms generalizability. These results demonstrate that lightweight CNNs with task-specific attention provide effective, deployable solutions for engagement monitoring on edge devices.}
 
-\keyword{student engagement; deep learning; facial expression recognition; MobileNetV3; EfficientNet; FER2013; lightweight CNN; educational technology}
+\keyword{student engagement; facial expression recognition; MobileNetV3; lightweight CNN; attention mechanism}
 
 % ---------- Chinese abstract ----------
 % TODO: Add Chinese abstract when CJK fonts are available
@@ -44,11 +45,11 @@ $^{2}$ \quad School of Computer Science, Hunan University of Technology and Busi
 
 \section{Introduction}
 
-Student engagement is widely recognized as one of the most significant predictors of academic success and learning outcomes~\cite{fredricks2004school}. Engaged students demonstrate higher levels of attention, participation, and persistence, which directly contribute to deeper learning and improved performance~\cite{dixson2015measuring}. With the rapid expansion of online and blended learning environments, particularly accelerated by the global shift toward digital education, there is an increasing need for automated systems capable of monitoring student engagement in real time~\cite{mandia2024deep}.
+Student engagement predicts academic success and learning outcomes~\cite{fredricks2004school}. Engaged students show greater attention, participation, and persistence, all of which support deeper learning~\cite{dixson2015measuring}. The expansion of online and blended education has increased demand for automated, real-time engagement monitoring~\cite{mandia2024deep}.
 
-Traditional methods of assessing engagement rely on manual observation, self-report surveys, and instructor judgment, which are subjective, time-consuming, and impractical for large-scale educational settings~\cite{whitehill2014faces}. The emergence of affective computing and computer vision technologies has opened new possibilities for automatic engagement detection through facial expression analysis~\cite{kleinsmith2013affective}. Facial expressions serve as rich indicators of cognitive and emotional states, conveying information about a learner's level of interest, confusion, boredom, and frustration~\cite{jampour2022multiview}.
+Manual assessment methods---observation, surveys, instructor judgment---are subjective and impractical at scale~\cite{whitehill2014faces}. Computer vision offers an alternative: facial expressions encode cognitive and emotional states, including interest, confusion, boredom, and frustration~\cite{kleinsmith2013affective,jampour2022multiview}.
 
-Deep learning, particularly convolutional neural networks (CNNs), has advanced facial expression recognition substantially~\cite{bengio2013representation}. However, deploying these models in educational environments involves computational constraints. Models such as ResNet-50 and VGG-16 require considerable memory and processing power, limiting their applicability on edge devices in classrooms~\cite{howard2017mobilenets}. This gap between accuracy and deployability motivates the search for efficient architectures.
+Convolutional neural networks (CNNs) have advanced facial expression recognition~\cite{bengio2013representation}, yet deploying them in classrooms faces computational constraints. ResNet-50 and VGG-16 demand memory and processing power that exceed the capacity of edge devices~\cite{howard2017mobilenets}. This gap between accuracy and deployability motivates the search for efficient architectures.
 
 To address this challenge, this paper investigates lightweight deep learning architectures for student engagement detection. Specifically, we evaluate MobileNetV3~\cite{howard2019mobilenetv3} and EfficientNet-B0~\cite{tan2019efficientnet}, which are designed to achieve competitive accuracy while maintaining low computational overhead. We repurpose the FER2013 facial expression dataset~\cite{goodfellow2013challenges} and CK+~\cite{lucey2010ck} for engagement detection through an emotion-to-engagement mapping, converting the seven basic emotions into four engagement states (Engaged, Boredom, Frustration, Confusion).
 
@@ -70,7 +71,7 @@ The remainder of this paper is organized as follows. Section~\ref{sec:related} r
 
 Student engagement is a multidimensional construct encompassing behavioral, emotional, and cognitive components~\cite{fredricks2004school}. Early approaches to automatic engagement detection relied on behavioral cues such as gaze direction, head pose, and body posture~\cite{whitehill2014faces}. Whitehill et al.~\cite{whitehill2014faces} pioneered the use of facial expressions for engagement recognition, demonstrating that computer vision systems can achieve reasonable accuracy in distinguishing engaged from disengaged states.
 
-With the advancement of deep learning, CNN-based approaches have become the dominant paradigm for engagement detection. Tongu\c{c} and Ozkara~\cite{tonguc2020automatic} applied deep learning to recognize student emotions during lectures, achieving significant improvements over traditional machine learning methods. Santoni et al.~\cite{santoni2023cnn} specifically addressed the class imbalance problem in the DAiSEE dataset using CNN-based models with data augmentation techniques.
+CNN-based approaches now dominate engagement detection. Tongu\c{c} and Ozkara~\cite{tonguc2020automatic} recognized student emotions during lectures, surpassing traditional machine learning baselines. Santoni et al.~\cite{santoni2023cnn} tackled class imbalance in the DAiSEE dataset through CNN models with data augmentation.
 
 Recent work has explored various deep learning architectures for engagement detection. Mandia et al.~\cite{mandia2024deep} proposed a deep learning framework for student engagement classification in online learning environments. Manu et al.~\cite{manu2026video} developed a video-based platform integrating emotion detection to increase online learning engagement. Zhao~\cite{zhao2025classroom} applied CNN-based facial expression recognition for engagement evaluation in classroom settings. Dhebe et al.~\cite{dhebe2025engagement} investigated engagement and attention level detection on the DAiSEE dataset using various deep learning approaches.
 
@@ -92,14 +93,7 @@ The application of transfer learning to engagement detection specifically has be
 
 \subsection{Overview}
 
-Figure~\ref{fig:framework} illustrates the overall framework of our proposed approach. The system consists of four main components: (1) face detection and preprocessing, (2) feature extraction using a lightweight backbone, (3) classification head for engagement prediction, and (4) training strategies including data augmentation and class balancing.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{figures/framework.pdf}
-\caption{Overview of the proposed lightweight CNN framework for student engagement detection. The system takes facial images as input, extracts features using a lightweight backbone (MobileNetV3 or EfficientNet-B0), and predicts engagement levels through a classification head.}
-\label{fig:framework}
-\end{figure}
+Our framework consists of four main components: (1) face detection and preprocessing, (2) feature extraction using a lightweight backbone, (3) classification head for engagement prediction, and (4) training strategies including data augmentation and class balancing.
 
 \subsection{Face Detection and Preprocessing}
 
@@ -212,6 +206,15 @@ After mapping FER2013 emotions to engagement classes, the dataset exhibits moder
 
 All models are implemented using PyTorch 2.0 and trained on a single NVIDIA RTX 3090 GPU (24\,GB). The input images are resized to 224$\times$224 pixels and normalized using ImageNet statistics. We use the Adam optimizer with weight decay of $10^{-4}$ and a cosine annealing learning rate scheduler. The batch size is set to 64, and training continues for 40 epochs (10 for head-only, 30 for fine-tuning). We report results from 5-fold cross-validation with mean and standard deviation.
 
+Figure~\ref{fig:training} shows representative training curves for MobileNetV3+CSAM, illustrating the two-stage training process.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/training_curves.pdf}
+\caption{Training curves for MobileNetV3+CSAM on FER2013. Stage~1 (epochs 1--10): head-only training with LR=$10^{-3}$. Stage~2 (epochs 11--40): full fine-tuning with LR=$10^{-4}$.}
+\label{fig:training}
+\end{figure}
+
 \subsection{Dataset}
 
 We evaluate on the FER2013 dataset~\cite{goodfellow2013challenges}, which contains 35,340 grayscale facial images (48$\times$48 pixels) labeled with seven emotions. We map these to four engagement classes: Happy$\rightarrow$Engaged, Neutral$\rightarrow$Boredom, Sad+Anger$\rightarrow$Frustration, Surprise+Fear+Disgust$\rightarrow$Confusion. We also evaluate cross-dataset generalization on CK+~\cite{lucey2010ck} (804 images). Table~\ref{tab:dataset} summarizes the class distribution.
@@ -256,15 +259,19 @@ We compare our lightweight models with the following baseline methods:
 \end{itemize}
 
 \subsection{Comparison with Baselines}
+\label{sec:results}
 
 Table~\ref{tab:results} presents the comparison of our proposed lightweight models with baseline methods on the FER2013 engagement detection task. We report results for both the base lightweight models and their CSAM-enhanced variants.
 
 \begin{table}[H]
 \caption{Comparison of lightweight models with baseline methods on FER2013 engagement detection (mean$\pm$std from 5-fold cross-validation). Best results are shown in bold.}
 \label{tab:results}
-\begin{tabular}{lcccccc}
+\centering
+\small
+\begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
 \toprule
-\textbf{Method} & \textbf{Acc. (\%)} & \textbf{Prec. (\%)} & \textbf{Rec. (\%)} & \textbf{F1 (\%)} & \textbf{Params (M)} & \textbf{FLOPs (G)} \\
+\textbf{Method} & \textbf{Acc.} & \textbf{Prec.} & \textbf{Rec.} & \textbf{F1} & \textbf{Params} & \textbf{FLOPs} \\
+& \textbf{(\%)} & \textbf{(\%)} & \textbf{(\%)} & \textbf{(\%)} & \textbf{(M)} & \textbf{(G)} \\
 \midrule
 VGG-16 & 60.8$\pm$1.3 & 59.2$\pm$1.5 & 58.6$\pm$1.4 & 58.9$\pm$1.4 & 138.0 & 15.5 \\
 ResNet-50 & 63.5$\pm$1.0 & 62.1$\pm$1.1 & 61.8$\pm$1.2 & 61.9$\pm$1.1 & 25.6 & 4.1 \\
@@ -276,10 +283,19 @@ MobileNetV3+CSAM & 70.5$\pm$0.3 & 69.8$\pm$0.3 & 69.5$\pm$0.4 & 70.3$\pm$0.3 & 1
 EfficientNet-B0 & 67.8$\pm$0.8 & 66.5$\pm$0.9 & 66.0$\pm$1.0 & 66.2$\pm$0.9 & 5.3 & 0.39 \\
 EfficientNet-B0+CSAM & \textbf{69.1$\pm$0.7} & \textbf{67.8$\pm$0.8} & \textbf{67.3$\pm$0.9} & \textbf{67.5$\pm$0.8} & 5.4 & 0.42 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 The results demonstrate that our lightweight models achieve competitive or superior performance compared to heavier baseline methods. MobileNetV3+CSAM achieves 70.5\% accuracy with only 1.26M parameters, surpassing ResNet-50 (64.0\%, 25.6M) by 3.8\% while using 20$\times$ fewer parameters. EfficientNet-B0+CSAM achieves the highest accuracy of 69.1\% with 5.4M parameters. The CSAM module consistently improves both backbones by 1.5--1.8\% with negligible parameter overhead. The relatively lower absolute accuracy compared to binary engagement detection reflects the difficulty of the fine-grained four-class task, where confusion and frustration states share overlapping facial cues.
+
+Figure~\ref{fig:model_comparison} visualizes the accuracy and F1 score comparison across all models.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/model_comparison.pdf}
+\caption{Comparison of accuracy and F1 score across baseline and proposed models on FER2013 engagement detection. MNv3: MobileNetV3-Small; EN-B0: EfficientNet-B0.}
+\label{fig:model_comparison}
+\end{figure}
 
 \subsection{Efficiency Analysis}
 
@@ -288,9 +304,11 @@ Table~\ref{tab:efficiency} presents the efficiency comparison between lightweigh
 \begin{table}[H]
 \caption{Efficiency comparison of different models. Inference time is measured on NVIDIA RTX 3090 with batch size 1. Energy per inference estimated via TDP model at 30\% utilization.}
 \label{tab:efficiency}
-\begin{tabular}{lccccc}
+\centering
+\small
+\begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
 \toprule
-\textbf{Method} & \textbf{Params (M)} & \textbf{FLOPs (G)} & \textbf{Inference (ms)} & \textbf{Energy (mJ)} & \textbf{Accuracy (\%)} \\
+\textbf{Method} & \textbf{Params (M)} & \textbf{FLOPs (G)} & \textbf{Inference (ms)} & \textbf{Energy (mJ)} & \textbf{Acc. (\%)} \\
 \midrule
 VGG-16 & 138.0 & 15.5 & 5.2 & 15.6 & 60.8 \\
 ResNet-50 & 25.6 & 4.1 & 3.1 & 9.3 & 63.5 \\
@@ -302,10 +320,19 @@ MobileNetV3+CSAM & 1.26 & 0.068 & 1.2 & 3.6 & 70.5 \\
 EfficientNet-B0 & 5.3 & 0.39 & 1.9 & 5.7 & 67.8 \\
 EfficientNet-B0+CSAM & 5.4 & 0.42 & 2.1 & 6.3 & 69.1 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 MobileNetV3+CSAM achieves 2.6$\times$ faster inference than ResNet-50 and 4.3$\times$ faster than VGG-16, while surpassing ResNet-50 accuracy by 3.8\%. The energy consumption of MobileNetV3+CSAM (3.6 mJ per inference) is 2.6$\times$ lower than ResNet-50 (9.3 mJ), which is critical for battery-powered edge devices in classrooms.
+
+Figure~\ref{fig:efficiency} visualizes the efficiency-accuracy trade-off (left: parameters vs.\ accuracy bubble chart; right: inference time comparison).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/efficiency.pdf}
+\caption{Efficiency-accuracy trade-off. Left: parameters vs.\ accuracy (bubble size proportional to FLOPs). Right: inference time comparison on RTX 3090.}
+\label{fig:efficiency}
+\end{figure}
 
 \subsection{Ablation Study}
 
@@ -381,7 +408,9 @@ Table~\ref{tab:csam} shows the contribution of the proposed Channel-Spatial Atte
 \begin{table}[H]
 \caption{Effect of CSAM on different backbone architectures (FER2013). CSAM consistently improves accuracy with negligible parameter overhead.}
 \label{tab:csam}
-\begin{tabular}{lccccc}
+\centering
+\small
+\begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
 \toprule
 \textbf{Backbone} & \textbf{w/ CSAM} & \textbf{Acc. (\%)} & \textbf{F1 (\%)} & \textbf{Params (M)} & \textbf{$\Delta$Acc.} \\
 \midrule
@@ -391,10 +420,19 @@ MobileNetV3-Small & Yes & 70.5 & 70.3 & 1.26 & +1.8 \\
 EfficientNet-B0 & No & 67.8 & 66.2 & 5.30 & -- \\
 EfficientNet-B0 & Yes & 69.1 & 67.5 & 5.38 & +1.3 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 CSAM improves both backbones by 1.3--1.8\% accuracy with only 0.01--0.08M additional parameters. The spatial attention component helps the model focus on discriminative facial regions (eyes, mouth, eyebrows), while the channel attention recalibrates feature responses toward engagement-relevant patterns.
+
+Figure~\ref{fig:ablation} summarizes the four ablation studies.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/ablation_study.pdf}
+\caption{Ablation study results. (a) Data augmentation presets. (b) Loss function strategies (F1 score). (c) Transfer learning initialization. (d) CSAM effect on different backbones.}
+\label{fig:ablation}
+\end{figure}
 
 \subsection{Per-Class Analysis}
 
@@ -418,6 +456,22 @@ Confusion & 57.6 & 55.3 & 56.4 \\
 \end{table}
 
 The model performs best on the Engaged class (F1 = 75.5\%), which has the most distinctive facial cues (smile, forward expression). The Confusion class remains the most challenging (F1 = 56.4\%), consistent with prior findings that confusion manifests through subtle, ambiguous facial expressions that overlap with Frustration~\cite{whitehill2014faces}. The Boredom class (F1 = 59.8\%) is also difficult due to its neutral-like expressions and smaller sample size.
+
+Figures~\ref{fig:per_class} and~\ref{fig:confusion} visualize the per-class performance and confusion matrix.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/per_class_f1.pdf}
+\caption{Per-class F1 score for MobileNetV3+CSAM on FER2013. Sample counts shown as grey diamonds (right axis).}
+\label{fig:per_class}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/confusion_matrix.pdf}
+\caption{Confusion matrix of MobileNetV3+CSAM on the FER2013 test set. Diagonal values (correct predictions) are highlighted.}
+\label{fig:confusion}
+\end{figure}
 
 \subsection{Qualitative Analysis}
 
@@ -450,7 +504,7 @@ The improvement on Confusion (2.4\% F1) is equally important. Confusion samples 
 
 The proposed CSAM module improves both MobileNetV3 and EfficientNet-B0 by 1.3--1.8\% with only 0.01--0.08M additional parameters. Grad-CAM analysis (Figure~\ref{fig:gradcam}) reveals that CSAM shifts model attention toward psychologically meaningful facial regions. For engagement, the eye and forehead regions receive higher activation, consistent with the AU1+AU4 (inner brow raise) and AU5 (upper lid raise) action units associated with interest~\cite{jampour2022multiview}. For boredom, attention concentrates on the mouth region, aligning with AU15 (lip corner depressor) and AU17 (chin raiser).
 
-This alignment between learned attention patterns and established facial action unit theory provides interpretability evidence that the model captures genuine engagement signals rather than dataset-specific artifacts.
+The alignment between learned attention and facial action unit theory supports the view that the model captures genuine engagement signals rather than dataset artifacts.
 
 \subsection{Practical Deployment Considerations}
 
@@ -515,7 +569,7 @@ This paper presents a lightweight deep learning framework for student engagement
 
 On FER2013, MobileNetV3+CSAM achieves 70.5\% accuracy with 1.26M parameters and 0.13G FLOPs, surpassing ResNet-50 (64.0\%, 25.6M) by 3.8\% while requiring 2.6$\times$ less energy per inference. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. The CSAM module contributes 1.3--1.8\% accuracy gain with negligible overhead, and the focal weighted loss with weighted sampling improves minority-class F1 by 3.5\% over standard approaches. Cross-dataset evaluation on CK+ confirms generalizability.
 
-The computational efficiency of these lightweight models enables real-time deployment on edge devices, addressing both practical deployment constraints and privacy concerns in educational settings. These findings contribute to the growing body of work on applying deep learning to educational technology and provide practical guidelines for developing deployable engagement monitoring systems.
+The computational efficiency of these lightweight models enables real-time deployment on edge devices, addressing both deployment constraints and privacy concerns in educational settings. These findings provide practical guidelines for developing deployable engagement monitoring systems.
 
 Future work will focus on direct evaluation on engagement-specific datasets (e.g., DAiSEE), temporal modeling with video sequences, multimodal fusion, and model compression for microcontroller deployment.
 
@@ -552,44 +606,14 @@ NAS & Neural Architecture Search \\
 \bibitem{fredricks2004school}
 Fredricks, Jennifer A.; Blumenfeld, Phyllis C.; Paris, Alison H.. {\textit{School Engagement: Potential of the Concept, State of the Evidence}}. {\textit{Review of Educational Research}} \textbf{2004}, {\textit{74}}(1), 59---109.
 
-\bibitem{whitehill2014faces}
-Whitehill, Jacob; Serpell, Zewelanji; Lin, Yi-Ching; Foster, Aysha; Movellan, Javier R.. {\textit{The Faces of Engagement: Automatic Recognition of Student Engagement from Facial Expressions}}. {\textit{IEEE Transactions on Affective Computing}} \textbf{2014}, {\textit{5}}(1), 86---98.
-
-\bibitem{deng2009imagenet}
-Deng, Jia; Dong, Wei; Socher, Richard; Li, Li-Jia; Li, Kai; Fei-Fei, Li. {\textit{{ImageNet}}. {\textit{2009 IEEE Conference on Computer Vision and Pattern Recognition}} \textbf{2009}, 248---255.
-
-\bibitem{russakovsky2015imagenet}
-Russakovsky, Olga; Deng, Jia; Su, Hao; Krause, Jonathan; Satheesh, Sanjeev; Ma, Sean; Huang, Zhiheng; Karpathy, Andrej; Khosla, Aditya; Bernstein, Michael; Berg, Alexander C.; Fei-Fei, Li. {\textit{{ImageNet}}. {\textit{International Journal of Computer Vision}} \textbf{2015}, {\textit{115}}(3), 211---252.
-
-\bibitem{howard2017mobilenets}
-Howard, Andrew G.; Zhu, Menglong; Chen, Bo; Kalenichenko, Dmitry; Wang, Weijun; Weyand, Tobias; Andreetto, Marco; Adam, Hartwig. {\textit{{MobileNets}}. {\textit{arXiv preprint arXiv:1704.04861}} \textbf{2017}.
-
-\bibitem{sandler2018mobilenetv2}
-Sandler, Mark; Howard, Andrew; Zhu, Menglong; Zhmoginov, Andrey; Chen, Liang-Chieh. {\textit{{MobileNetV2}}. In Proceedings of 2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2018.
-
-\bibitem{howard2019mobilenetv3}
-Howard, Andrew; Sandler, Mark; Chen, Bo; Wang, Weijun; Chen, Liang-Chieh; Tan, Mingxing; Chu, Grace; Vasudevan, Vijay; Zhu, Yukun; Pang, Ruoming; Adam, Hartwig; Le, Quoc. {\textit{Searching for {MobileNetV3}}. In Proceedings of Proceedings of the IEEE/CVF International Conference on Computer Vision, 2019.
-
-\bibitem{tan2019efficientnet}
-Tan, Mingxing; Le, Quoc V.. {\textit{{EfficientNet}}. In Proceedings of Proceedings of the 36th International Conference on Machine Learning, 2019.
-
-\bibitem{tonguc2020automatic}
-Tongu\c{c. {\textit{Automatic Recognition of Student Emotions from Facial Expressions during a Lecture}}. {\textit{Computers \& Education}} \textbf{2020}, {\textit{148}}, 103797.
-
-\bibitem{solanki2022engagement}
-Solanki, Naman; Mandal, Souraj. {\textit{Engagement Analysis Using {DAiSEE}}. In Proceedings of 2022 17th International Conference on Control, Automation, Robotics and Vision (ICARCV), 2022.
-
-\bibitem{santoni2023cnn}
-Santoni, Mayanda Mega; Basaruddin, T.; Junus, Kasiyah. {\textit{Convolutional Neural Network Model based Students' Engagement Detection in Imbalanced {DAiSEE}}. {\textit{International Journal of Advanced Computer Science and Applications}} \textbf{2023}, {\textit{14}}(3).
+\bibitem{dixson2015measuring}
+Dixson, Marcia D.. {\textit{Measuring Student Engagement in the Online Course: The Online Student Engagement Scale ({OSE}}. {\textit{Online Learning}} \textbf{2015}, {\textit{19}}(4).
 
 \bibitem{mandia2024deep}
 Mandia, Sandeep; Singh, Kuldeep; Mitharwal, Rajendra. {\textit{Deep Learning-Based Student Engagement Classification in Online Learning}}. {\textit{International Journal of Pattern Recognition and Artificial Intelligence}} \textbf{2024}, {\textit{38}}(13), 2452026.
 
-\bibitem{manu2026video}
-Manu, Gerlan Apriandy; Setyosari, Punaji; Ulfa, Saida; Praherdhiono, Henry. {\textit{Developing A Video-Based Discussion Platform With Emotion Detection Deep Learning To Increase Online Learning Engagement}}. {\textit{Online Learning}} \textbf{2026}, {\textit{30}}(2).
-
-\bibitem{bengio2013representation}
-Bengio, Yoshua; Courville, Aaron; Vincent, Pascal. {\textit{Representation Learning: A Review and New Perspectives}}. {\textit{IEEE Transactions on Pattern Analysis and Machine Intelligence}} \textbf{2013}, {\textit{35}}(8), 1798---1828.
+\bibitem{whitehill2014faces}
+Whitehill, Jacob; Serpell, Zewelanji; Lin, Yi-Ching; Foster, Aysha; Movellan, Javier R.. {\textit{The Faces of Engagement: Automatic Recognition of Student Engagement from Facial Expressions}}. {\textit{IEEE Transactions on Affective Computing}} \textbf{2014}, {\textit{5}}(1), 86---98.
 
 \bibitem{kleinsmith2013affective}
 Kleinsmith, Andrea; Bianchi-Berthouze, Nadia. {\textit{Affective Body Expression Perception and Recognition: A Survey}}. {\textit{IEEE Transactions on Affective Computing}} \textbf{2013}, {\textit{4}}(1), 15---33.
@@ -597,11 +621,56 @@ Kleinsmith, Andrea; Bianchi-Berthouze, Nadia. {\textit{Affective Body Expression
 \bibitem{jampour2022multiview}
 Jampour, Mahdi; Javidi, Malihe. {\textit{Multiview Facial Expression Recognition, A Survey}}. {\textit{IEEE Transactions on Affective Computing}} \textbf{2022}, {\textit{14}}(4), 2797---2816.
 
+\bibitem{bengio2013representation}
+Bengio, Yoshua; Courville, Aaron; Vincent, Pascal. {\textit{Representation Learning: A Review and New Perspectives}}. {\textit{IEEE Transactions on Pattern Analysis and Machine Intelligence}} \textbf{2013}, {\textit{35}}(8), 1798---1828.
+
+\bibitem{howard2017mobilenets}
+Howard, Andrew G.; Zhu, Menglong; Chen, Bo; Kalenichenko, Dmitry; Wang, Weijun; Weyand, Tobias; Andreetto, Marco; Adam, Hartwig. {\textit{{MobileNets}}. {\textit{arXiv preprint arXiv:1704.04861}} \textbf{2017}.
+
+\bibitem{howard2019mobilenetv3}
+Howard, Andrew; Sandler, Mark; Chen, Bo; Wang, Weijun; Chen, Liang-Chieh; Tan, Mingxing; Chu, Grace; Vasudevan, Vijay; Zhu, Yukun; Pang, Ruoming; Adam, Hartwig; Le, Quoc. {\textit{Searching for {MobileNetV3}}. In Proceedings of Proceedings of the IEEE/CVF International Conference on Computer Vision, 2019.
+
+\bibitem{tan2019efficientnet}
+Tan, Mingxing; Le, Quoc V.. {\textit{{EfficientNet}}. In Proceedings of Proceedings of the 36th International Conference on Machine Learning, 2019.
+
+\bibitem{goodfellow2013challenges}
+Goodfellow, Ian J.; Erhan, Dumitru; Carrier, Pierre Luc; Courville, Aaron; Mirza, Mehdi; Hamner, Ben; Cukierski, Will; Tang, Yichuan; Thaler, David; Lee, Dong-Hyun; Zhou, Ying; Ramaiah, Chetan; Feng, Fangxiang; Li, Ruifan; Wang, Xiaojie; Athanasakis, Dimitris; Shawe-Taylor, John; Milakov, Maxim; Park, John; Iber, Radu; Ozber, Serkan; Bengio, Yoshua. {\textit{Challenges in Representation Learning: A Report on Three Machine Learning Contests}}. In Proceedings of Neural Information Processing, 2013, pp.~117--124.
+
+\bibitem{lucey2010ck}
+Lucey, Patrick; Cohn, Jeffrey F.; Kanade, Takeo; Saragih, Jason; Ambadar, Zara; Matthews, Iain. {\textit{The Extended Cohn-Kanade Dataset ({CK+}): A Complete Expression Dataset for Action Unit and Emotion-Specified Expression}}. In Proceedings of 2010 IEEE Computer Society Conference on Computer Vision and Pattern Recognition Workshops, 2010, pp.~94--101.
+
+\bibitem{tonguc2020automatic}
+Tongu\c{c. {\textit{Automatic Recognition of Student Emotions from Facial Expressions during a Lecture}}. {\textit{Computers \& Education}} \textbf{2020}, {\textit{148}}, 103797.
+
+\bibitem{santoni2023cnn}
+Santoni, Mayanda Mega; Basaruddin, T.; Junus, Kasiyah. {\textit{Convolutional Neural Network Model based Students' Engagement Detection in Imbalanced {DAiSEE}}. {\textit{International Journal of Advanced Computer Science and Applications}} \textbf{2023}, {\textit{14}}(3).
+
+\bibitem{manu2026video}
+Manu, Gerlan Apriandy; Setyosari, Punaji; Ulfa, Saida; Praherdhiono, Henry. {\textit{Developing A Video-Based Discussion Platform With Emotion Detection Deep Learning To Increase Online Learning Engagement}}. {\textit{Online Learning}} \textbf{2026}, {\textit{30}}(2).
+
 \bibitem{zhao2025classroom}
 Zhao, Zibo. {\textit{Convolutional Neural Network based Facial Expression Recognition for Student Engagement Evaluation in Higher Vocational English Classroom}}. In Proceedings of 2025 4th International Conference on Distributed Computing and Electrical Circuits and Electronics (ICDCECE), 2025.
 
 \bibitem{dhebe2025engagement}
 Dhebe, Pranav; Jadhav, Dattaraj; Magdum, Sairaj; Kolase, Kedar; Sable, Nilesh; Yenkikar, Anuradha. {\textit{Engagement and Attention Level Detection on the {DAiSEE}}. In Proceedings of 2025 International Conference on Emerging Technologies and Innovation for Sustainability (EmergIN), 2025.
+
+\bibitem{sandler2018mobilenetv2}
+Sandler, Mark; Howard, Andrew; Zhu, Menglong; Zhmoginov, Andrey; Chen, Liang-Chieh. {\textit{{MobileNetV2}}. In Proceedings of 2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2018.
+
+\bibitem{podder2022time}
+Podder, Tanusree; Bhattacharya, Diptendu; Majumdar, Abhishek. {\textit{Time Efficient Real Time Facial Expression Recognition with {CNN}}. {\textit{S\={a}} \textbf{2022}, {\textit{47}}(3), 1---14.
+
+\bibitem{chen2023resnet}
+Chen, Yixuan. {\textit{Facial Expression Recognition based on {ResNet}}. {\textit{Applied and Computational Engineering}} \textbf{2023}, {\textit{22}}, 73---80.
+
+\bibitem{deng2009imagenet}
+Deng, Jia; Dong, Wei; Socher, Richard; Li, Li-Jia; Li, Kai; Fei-Fei, Li. {\textit{{ImageNet}}. {\textit{2009 IEEE Conference on Computer Vision and Pattern Recognition}} \textbf{2009}, 248---255.
+
+\bibitem{russakovsky2015imagenet}
+Russakovsky, Olga; Deng, Jia; Su, Hao; Krause, Jonathan; Satheesh, Sanjeev; Ma, Sean; Huang, Zhiheng; Karpathy, Andrej; Khosla, Aditya; Bernstein, Michael; Berg, Alexander C.; Fei-Fei, Li. {\textit{{ImageNet}}. {\textit{International Journal of Computer Vision}} \textbf{2015}, {\textit{115}}(3), 211---252.
+
+\bibitem{li2021facial}
+Li, Bin. {\textit{Facial Expression Recognition via Transfer Learning}}. {\textit{EAI Endorsed Transactions on e-Learning}} \textbf{2021}, {\textit{7}}(21).
 
 \bibitem{setiaputri2025deep}
 Setiaputri, Grace; Mackenzie, Jason Chrisbellno; Edbert, Ivan Sebastian; Suhartono, Derwin. {\textit{Deep Learning-Based Facial Expression Recognition for Analyzing Visitor Engagement}}. In Proceedings of Proceedings of the 1st International Conference on Research and Innovations in Information and Engineering Technology, 2025.
@@ -609,26 +678,8 @@ Setiaputri, Grace; Mackenzie, Jason Chrisbellno; Edbert, Ivan Sebastian; Suharto
 \bibitem{liang2023survey}
 Liang, Chengxu; Dong, Jianshe. {\textit{A Survey of Deep Learning-based Facial Expression Recognition Research}}. {\textit{Frontiers in Computing and Intelligent Systems}} \textbf{2023}, {\textit{5}}(2).
 
-\bibitem{chen2023resnet}
-Chen, Yixuan. {\textit{Facial Expression Recognition based on {ResNet}}. {\textit{Applied and Computational Engineering}} \textbf{2023}, {\textit{22}}, 73---80.
-
-\bibitem{podder2022time}
-Podder, Tanusree; Bhattacharya, Diptendu; Majumdar, Abhishek. {\textit{Time Efficient Real Time Facial Expression Recognition with {CNN}}. {\textit{S\={a}} \textbf{2022}, {\textit{47}}(3), 1---14.
-
-\bibitem{li2021facial}
-Li, Bin. {\textit{Facial Expression Recognition via Transfer Learning}}. {\textit{EAI Endorsed Transactions on e-Learning}} \textbf{2021}, {\textit{7}}(21).
-
-\bibitem{dixson2015measuring}
-Dixson, Marcia D.. {\textit{Measuring Student Engagement in the Online Course: The Online Student Engagement Scale ({OSE}}. {\textit{Online Learning}} \textbf{2015}, {\textit{19}}(4).
-
-\bibitem{papadopoulos2013learner}
-Papadopoulos, Fotios; Corrigan, Lee J.; Jones, Aidan; Castellano, Ginevra. {\textit{Learner Modelling and Automatic Engagement Recognition with Robotic Tutors}}. In Proceedings of 2013 Humaine Association Conference on Affective Computing and Intelligent Interaction, 2013.
-
-\bibitem{goodfellow2013challenges}
-Goodfellow, Ian J.; Erhan, Dumitru; Carrier, Pierre Luc; Courville, Aaron; Mirza, Mehdi; Hamner, Ben; Cukierski, Will; Tang, Yichuan; Thaler, David; Lee, Dong-Hyun; Zhou, Ying; Ramaiah, Chetan; Feng, Fangxiang; Li, Ruifan; Wang, Xiaojie; Athanasakis, Dimitris; Shawe-Taylor, John; Milakov, Maxim; Park, John; Iber, Radu; Ozber, Serkan; Bengio, Yoshua. {\textit{Challenges in Representation Learning: A Report on Three Machine Learning Contests}}. In Proceedings of Neural Information Processing, 2013, pp.~117--124.
-
-\bibitem{lucey2010ck}
-Lucey, Patrick; Cohn, Jeffrey F.; Kanade, Takeo; Saragih, Jason; Ambadar, Zara; Matthews, Iain. {\textit{The Extended Cohn-Kanade Dataset ({CK+}): A Complete Expression Dataset for Action Unit and Emotion-Specified Expression}}. In Proceedings of 2010 IEEE Computer Society Conference on Computer Vision and Pattern Recognition Workshops, 2010, pp.~94--101.
+\bibitem{solanki2022engagement}
+Solanki, Naman; Mandal, Souraj. {\textit{Engagement Analysis Using {DAiSEE}}. In Proceedings of 2022 17th International Conference on Control, Automation, Robotics and Vision (ICARCV), 2022.
 
 \end{thebibliography}
 
