@@ -1,0 +1,37 @@
+{
+  "experiment": "cross_dataset_fer2013_to_ckplus_5fold",
+  "source": "FER2013",
+  "target": "CK+",
+  "folds": [
+    {
+      "fold": 0,
+      "accuracy": 0.781,
+      "f1_macro": 0.73
+    },
+    {
+      "fold": 1,
+      "accuracy": 0.675,
+      "f1_macro": 0.648
+    },
+    {
+      "fold": 2,
+      "accuracy": 0.763,
+      "f1_macro": 0.748
+    },
+    {
+      "fold": 3,
+      "accuracy": 0.693,
+      "f1_macro": 0.645
+    },
+    {
+      "fold": 4,
+      "accuracy": 0.684,
+      "f1_macro": 0.644
+    }
+  ],
+  "mean_accuracy": 0.719,
+  "std_accuracy": 0.044,
+  "mean_f1_macro": 0.683,
+  "std_f1_macro": 0.046,
+  "num_test_samples": 114
+}

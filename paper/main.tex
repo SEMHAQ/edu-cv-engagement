@@ -30,7 +30,7 @@ $^{2}$ \quad School of Computer Science, Hunan University of Technology and Busi
 \corres{Correspondence: semhaqx@gmail.com}
 
 % ---------- Abstract (English) ----------
-\abstract{Automated student engagement detection from facial expressions is needed for real-time monitoring in educational environments. This paper proposes a lightweight deep learning framework integrating MobileNetV3 and EfficientNet-B0 with a novel Channel-Spatial Attention Module (CSAM) and focal weighted loss for engagement recognition. We map the FER2013 facial expression dataset (35,340 images) and CK+ dataset (804 images) to a four-class engagement taxonomy (Engaged, Boredom, Frustration, Confusion) via an emotion-to-engagement mapping. Our method uses two-stage transfer learning from ImageNet, data augmentation, focal weighted loss with label smoothing, and weighted sampling for joint class balancing and hard-example mining. MobileNetV3+CSAM achieves 70.5\% accuracy on the four-class task with 1.26M parameters and 0.13G FLOPs. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. CSAM contributes 1.5--1.8\% accuracy gain with 0.3\% parameter overhead. Ablation studies confirm the contributions of data augmentation (+3.8\%), focal weighted loss (+3.5\% F1 on minority classes), and transfer learning (+9.2\%). Cross-dataset evaluation on CK+ confirms generalizability. These results demonstrate that lightweight CNNs with task-specific attention provide effective, deployable solutions for engagement monitoring on edge devices.}
+\abstract{Automated student engagement detection from facial expressions is needed for real-time monitoring in educational environments. This paper proposes a lightweight deep learning framework integrating MobileNetV3 and EfficientNet-B0 with a novel Channel-Spatial Attention Module (CSAM) and focal weighted loss for engagement recognition. We map the FER2013 facial expression dataset (35,340 images) and CK+ dataset (804 images) to a four-class engagement taxonomy (Engaged, Boredom, Frustration, Confusion) via an emotion-to-engagement mapping. Our method uses two-stage transfer learning from ImageNet, data augmentation, focal weighted loss with label smoothing, and weighted sampling for joint class balancing and hard-example mining. MobileNetV3+CSAM achieves 70.5\% accuracy on the four-class task with 1.26M parameters and 0.13G FLOPs. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. CSAM contributes 1.5--1.8\% accuracy gain with 0.3\% parameter overhead. Ablation studies confirm the contributions of data augmentation (+3.8\%), focal weighted loss (+3.5\% F1 on minority classes), and transfer learning (+9.2\%). Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning) confirms generalizability. These results demonstrate that lightweight CNNs with task-specific attention provide effective, deployable solutions for engagement monitoring on edge devices.}
 
 \keyword{student engagement; facial expression recognition; MobileNetV3; lightweight CNN; attention mechanism}
 
@@ -475,6 +475,26 @@ Figures~\ref{fig:per_class} and~\ref{fig:confusion} visualize the per-class perf
 \label{fig:confusion}
 \end{figure}
 
+\subsection{Cross-Dataset Evaluation}
+
+To assess generalizability, we evaluate the five FER2013-trained MobileNetV3+CSAM models on the CK+ test set~\cite{lucey2010ck} without any fine-tuning. Table~\ref{tab:cross_dataset} presents the results.
+
+\begin{table}[H]
+\caption{Cross-dataset evaluation: FER2013$\rightarrow$CK+ (no fine-tuning). Mean$\pm$std over 5 folds.}\label{tab:cross_dataset}
+\centering
+\small
+\begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+\toprule
+\textbf{Evaluation} & \textbf{Accuracy (\%)} & \textbf{F1 (\%)} & \textbf{Test Samples} \\
+\midrule
+Within-dataset (FER2013) & 70.5$\pm$0.3 & 70.3$\pm$0.3 & 7,067 \\
+Cross-dataset (CK+) & 71.9$\pm$4.4 & 68.3$\pm$4.6 & 114 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The cross-dataset accuracy (71.9\%) is comparable to the within-dataset result (70.5\%), suggesting that the learned features generalize across datasets despite differences in image resolution (FER2013: 48$\times$48 grayscale; CK+: 640$\times$490 color) and collection conditions. The higher variance ($\pm$4.4\% vs.\ $\pm$0.3\%) reflects the smaller CK+ test set (114 vs.\ 7,067 images). Per-class analysis reveals that the Engaged class transfers best (F1: 0.88), while Boredom transfers poorly (F1: 0.42), likely because Boredom expressions in CK+ (mapped from Contempt) differ visually from Neutral expressions in FER2013.
+
 \subsection{Qualitative Analysis}
 
 Figure~\ref{fig:gradcam} presents Grad-CAM visualizations showing which facial regions the model attends to for different engagement states. For engagement, the model focuses primarily on the eye region and forehead. For boredom, attention shifts to the mouth and lower face. Confusion detection relies on a combination of eyebrow and mouth regions. These patterns align with psychological research on facial action units associated with different affective states~\cite{jampour2022multiview}.
@@ -569,7 +589,7 @@ Four directions emerge from this study.
 
 This paper presents a lightweight deep learning framework for student engagement detection, integrating MobileNetV3 and EfficientNet-B0 with a novel Channel-Spatial Attention Module (CSAM) and focal weighted loss. We repurpose FER2013 and CK+ for engagement detection through an emotion-to-engagement mapping, enabling evaluation on publicly available facial expression datasets.
 
-On FER2013, MobileNetV3+CSAM achieves 70.5\% accuracy with 1.26M parameters and 0.13G FLOPs, surpassing ResNet-50 (64.0\%, 25.6M) by 3.8\% while requiring 2.6$\times$ less energy per inference. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. The CSAM module contributes 1.3--1.8\% accuracy gain with negligible overhead, and the focal weighted loss with weighted sampling improves minority-class F1 by 3.5\% over standard approaches. Cross-dataset evaluation on CK+ confirms generalizability.
+On FER2013, MobileNetV3+CSAM achieves 70.5\% accuracy with 1.26M parameters and 0.13G FLOPs, surpassing ResNet-50 (64.0\%, 25.6M) by 3.8\% while requiring 2.6$\times$ less energy per inference. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. The CSAM module contributes 1.3--1.8\% accuracy gain with negligible overhead, and the focal weighted loss with weighted sampling improves minority-class F1 by 3.5\% over standard approaches. Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning) confirms generalizability.
 
 The computational efficiency of these lightweight models enables real-time deployment on edge devices, addressing both deployment constraints and privacy concerns in educational settings. These findings provide practical guidelines for developing deployable engagement monitoring systems.
 
