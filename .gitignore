@@ -1,19 +1,14 @@
-# ===== Claude Code (local only) =====
+# Claude Code (local only)
 .claude/
 CLAUDE.md
 
-# ===== MDPI template source (not paper content) =====
+# MDPI templates (not paper content)
 MDPI_template_ACS/
 MDPI_template_ACS.zip
-mdpi_template.zip
-paper/template_ref.tex
+MDPI_template_APA/
+MDPI_template_APA.zip
 
-# ===== Generated / build artifacts =====
-paper/peer_review/
-paper/COMPLETION_REPORT.md
-paper/main.pdf
-
-# ===== LaTeX build artifacts =====
+# LaTeX build artifacts
 *.aux
 *.log
 *.out
@@ -27,16 +22,12 @@ paper/main.pdf
 *.snm
 *.vrb
 
-# ===== LaTeX build artifacts in Definitions/ =====
+# LaTeX build artifacts in Definitions/
 paper/Definitions/logo-mdpi-eps-converted-to.pdf
 
-# ===== Old/duplicate =====
-/Definitions/
-/data/
-/figures/
+# Kaggle
+.kaggle/
 
-# ===== OS / Python =====
-__pycache__/
-*.pyc
+# OS
 .DS_Store
 Thumbs.db
