@@ -31,3 +31,10 @@ paper/Definitions/logo-mdpi-eps-converted-to.pdf
 # OS
 .DS_Store
 Thumbs.db
+
+# Data (large datasets)
+data/
+experiments/checkpoints/
+experiments/results/
+paper/peer_review/
+experiments/__pycache__/
