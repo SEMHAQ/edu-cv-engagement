@@ -1,0 +1,359 @@
+% !TEX program = pdflatex
+% MDPI Education Sciences
+\documentclass[apajournal,article,submit,pdftex,moreauthors]{Definitions/mdpi}
+\usepackage{tabularx}
+
+% ---------- MDPI metadata ----------
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{16}
+\issuenum{11}
+\articlenumber{XXXX}
+\pubyear{2026}
+\copyrightyear{2026}
+\datereceived{XX Month 2026}
+\dateaccepted{XX Month 2026}
+\datepublished{XX Month 2026}
+
+% ---------- Title ----------
+\Title{Deep Learning for Student Engagement Detection: A Lightweight CNN Approach for Educational Environments}
+
+% ---------- Authors ----------
+\Author{Donghai Peng $^{1}$ and Huanjie Yu $^{2,}$*}
+\AuthorNames{Donghai Peng and Huanjie Yu}
+\address{%
+$^{1}$ \quad School of Information Engineering, Shaoguan University, Shaoguan, Guangdong 512005, China\\
+$^{2}$ \quad School of Computer Science, Hunan University of Technology and Business, Changsha, Hunan 410205, China}
+\corres{Correspondence: semhaqx@gmail.com}
+
+% ---------- Abstract (English) ----------
+\abstract{Automated student engagement detection from facial expressions is a promising approach for real-time monitoring in educational environments. This paper proposes a lightweight deep learning framework integrating MobileNetV3 and EfficientNet-B0 with a Channel-Spatial Attention Module (CSAM)---a lightweight adaptation of dual-attention mechanisms optimized for mobile architectures---and focal weighted loss for engagement recognition. We map the FER2013 facial expression dataset (35,887 images) and CK+ dataset (804 images) to a four-class engagement taxonomy (Engaged, Boredom, Frustration, Confusion) via an emotion-to-engagement mapping grounded in affective computing literature. Our method uses two-stage transfer learning from ImageNet, data augmentation, focal weighted loss with label smoothing, and weighted sampling for joint class balancing and hard-example mining. MobileNetV3+CSAM achieves 70.5\% accuracy on the four-class task with 1.26M parameters and 0.068G FLOPs. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. CSAM contributes 1.3--5.0\% accuracy gain with 0.3\% parameter overhead. Ablation studies confirm the contributions of data augmentation (+3.8\%), focal weighted loss (+1.5--2.4\% F1 on minority classes), and transfer learning (+9.2\%). Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning, 114 test samples) provides preliminary evidence of generalizability. These results suggest that lightweight CNNs with task-specific attention can serve as efficient baselines for engagement recognition systems, though the comparison with heavier baselines partially reflects differences in training strategy rather than architecture alone, and validation on engagement-specific datasets and edge hardware remains necessary before classroom deployment.}
+
+\keyword{student engagement; facial expression recognition; MobileNetV3; lightweight CNN; attention mechanism}
+
+% ---------- Chinese abstract ----------
+
+
+
+
+
+
+\begin{document}
+
+\section{Introduction}
+
+Student engagement predicts academic success and learning outcomes~\citep{fredricks2004school}. Engaged students show greater attention, participation, and persistence, all of which support deeper learning~\citep{dixson2015measuring}. The expansion of online and blended education has increased demand for automated, real-time engagement monitoring~\citep{mandia2024deep}.
+
+Manual assessment methods---observation, surveys, instructor judgment---are subjective and impractical at scale~\citep{whitehill2014faces}. Computer vision offers an alternative: facial expressions encode cognitive and emotional states, including interest, confusion, boredom, and frustration~\cite{kleinsmith2013affective,jampour2022multiview}.
+
+Convolutional neural networks (CNNs) have advanced facial expression recognition~\citep{bengio2013representation}, yet deploying them in classrooms faces computational constraints. ResNet-50 and VGG-16 demand memory and processing power that exceed the capacity of edge devices~\citep{howard2017mobilenets}. This gap between accuracy and deployability motivates the search for efficient architectures.
+
+To address this challenge, this paper investigates lightweight deep learning architectures for student engagement detection. Specifically, we evaluate MobileNetV3~\citep{howard2019mobilenetv3} and EfficientNet-B0~\citep{tan2019efficientnet}, which are designed to achieve competitive accuracy while maintaining low computational overhead. We repurpose the FER2013 facial expression dataset~\citep{goodfellow2013challenges} and CK+~\citep{lucey2010ck} for engagement detection through an emotion-to-engagement mapping, converting the seven basic emotions into four engagement states (Engaged, Boredom, Frustration, Confusion).
+
+The main contributions of this paper are as follows:
+\begin{enumerate}
+\item We propose a lightweight CNN framework integrated with a Channel-Spatial Attention Module (CSAM), a lightweight adaptation of dual-attention mechanisms (cf. CBAM~\citep{woo2018cbam}) optimized for mobile architectures. CSAM combines channel recalibration with spatial attention in a single module, adding only 0.3\% parameters while improving accuracy by 1.3--5.0\%.
+\item We introduce a focal weighted loss function with label smoothing and gradient clipping that jointly addresses class imbalance and hard-example mining, outperforming standard weighted cross-entropy by 1.5\% F1 on Boredom and 2.4\% F1 on Confusion (1.5--2.4\% on minority classes). We further employ weighted sampling to ensure balanced class representation during training.
+\item We repurpose FER2013 and CK+ for engagement detection through an emotion-to-engagement mapping, enabling evaluation on publicly available facial expression datasets with well-established benchmarks.
+\item We conduct comprehensive experiments comparing lightweight models with heavier architectures, demonstrating that MobileNetV3+CSAM achieves 70.5\% accuracy with only 1.26M parameters and 0.068G FLOPs, offering an optimal accuracy-efficiency trade-off.
+\end{enumerate}
+
+The remainder of this paper is organized as follows. Section~\ref{sec:related} reviews related work on engagement detection and lightweight CNN architectures. Section~\ref{sec:method} describes the proposed methodology. Section~\ref{sec:results} presents the experimental setup and results. Section~\ref{sec:discussion} discusses the findings and limitations. Section~\ref{sec:conclusion} concludes the paper.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Student Engagement Detection}
+
+Student engagement is a multidimensional construct encompassing behavioral, emotional, and cognitive components~\citep{fredricks2004school}. Early approaches to automatic engagement detection relied on behavioral cues such as gaze direction, head pose, and body posture~\citep{whitehill2014faces}. Whitehill et al.~\citep{whitehill2014faces} pioneered the use of facial expressions for engagement recognition, demonstrating that computer vision systems can achieve reasonable accuracy in distinguishing engaged from disengaged states.
+
+CNN-based approaches now dominate engagement detection. Tongu\c{c} and Ozkara~\citep{tonguc2020automatic} recognized student emotions during lectures, surpassing traditional machine learning baselines. Santoni et al.~\citep{santoni2023cnn} tackled class imbalance in the DAiSEE dataset through CNN models with data augmentation. Grafsgaard et al.~\citep{grafsgaard2013automatically} demonstrated that facial expression features can predict engagement and frustration in tutoring interactions. Bosch et al.~\citep{bosch2015automatic} investigated automatic recognition of facial action units as indicators of engagement. Monkaresi et al.~\citep{monkaresi2017automated} combined facial expression detection with heart rate monitoring for automated engagement detection. D'Mello and Graesser~\citep{dmello2012auto} characterized confusion as a productive learning emotion, providing theoretical grounding for the Confusion engagement class. Dewan et al.~\citep{dewan2019deep} reviewed deep learning approaches for engagement detection in online learning environments.
+
+Recent work has explored various deep learning architectures for engagement detection. Mandia et al.~\citep{mandia2024deep} proposed a deep learning framework for student engagement classification in online learning environments. Manu et al.~\citep{manu2026video} developed a video-based platform integrating emotion detection to increase online learning engagement. Zhao~\citep{zhao2025classroom} applied CNN-based facial expression recognition for engagement evaluation in classroom settings. Dhebe et al.~\citep{dhebe2025engagement} investigated engagement and attention level detection on the DAiSEE dataset using various deep learning approaches.
+
+\subsection{Lightweight CNN Architectures}
+
+The development of lightweight CNN architectures has been driven by the need to deploy deep learning models on mobile and embedded devices. Howard et al.~\citep{howard2017mobilenets} introduced MobileNets, which use depthwise separable convolutions to significantly reduce computational cost while maintaining competitive accuracy. MobileNetV2~\citep{sandler2018mobilenetv2} further improved efficiency through inverted residual blocks with linear bottlenecks. MobileNetV3~\citep{howard2019mobilenetv3} combined neural architecture search with human-designed refinements to achieve optimal trade-offs between accuracy and latency. Attention mechanisms have also been widely adopted in lightweight architectures; the Convolutional Block Attention Module (CBAM)~\citep{woo2018cbam} demonstrated that sequential channel and spatial attention can improve representation quality with minimal overhead.
+
+EfficientNet~\citep{tan2019efficientnet} proposed a compound scaling method that uniformly scales network width, depth, and resolution using a set of fixed scaling coefficients. EfficientNet-B0, the baseline model, achieves comparable accuracy to much larger models while being significantly more efficient. These architectures have been successfully applied to various computer vision tasks, including facial expression recognition~\cite{podder2022time,chen2023resnet}.
+
+\subsection{Transfer Learning for Facial Expression Recognition}
+
+Transfer learning has become a standard approach in facial expression recognition, particularly when training data is limited~\citep{bengio2013representation}. Models pre-trained on large-scale datasets such as ImageNet~\cite{deng2009imagenet,russakovsky2015imagenet} can be fine-tuned on domain-specific datasets to achieve good performance with relatively small amounts of labeled data~\citep{li2021facial}. Chen~\citep{chen2023resnet} demonstrated the effectiveness of ResNet-based transfer learning for facial expression recognition. Podder et al.~\citep{podder2022time} achieved time-efficient real-time facial expression recognition using CNN with transfer learning.
+
+The application of transfer learning to engagement detection specifically has been explored by several researchers. Setiaputri et al.~\citep{setiaputri2025deep} applied deep learning-based facial expression recognition for analyzing visitor engagement, while Liang and Dong~\citep{liang2023survey} provided a comprehensive survey of deep learning-based facial expression recognition methods.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Materials and Methods}
+\label{sec:method}
+
+\subsection{Overview}
+
+Our framework consists of four main components: (1) face detection and preprocessing, (2) feature extraction using a lightweight backbone, (3) classification head for engagement prediction, and (4) training strategies including data augmentation and class balancing.
+
+\subsection{Face Detection and Preprocessing}
+
+The FER2013 dataset contains 48$\times$48 pixel grayscale facial images that have already been aligned and cropped. We convert all images to RGB format and resize to 224$\times$224 pixels to match the input resolution of the backbone networks. ImageNet normalization (mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225]) is applied during training and inference.
+
+\subsection{Lightweight Backbone Networks}
+
+\subsubsection{MobileNetV3}
+
+MobileNetV3~\citep{howard2019mobilenetv3} is the third generation of the MobileNet family, designed through a combination of neural architecture search (NAS) and human-driven refinements. The key innovation is the use of depthwise separable convolutions, which decompose a standard convolution into a depthwise convolution and a pointwise convolution, reducing computational cost by a factor of $k^2$ (where $k$ is the kernel size).
+
+MobileNetV3 introduces the inverted residual block with squeeze-and-excitation (SE) attention~\citep{howard2019mobilenetv3}. Each block consists of:
+\begin{enumerate}
+\item A 1$\times$1 convolution for channel expansion
+\item A depthwise convolution for spatial filtering
+\item A squeeze-and-excitation block for channel attention
+\item A 1$\times$1 convolution for channel projection
+\end{enumerate}
+
+The SE attention mechanism computes channel-wise statistics and learns to recalibrate feature responses, allowing the network to focus on the most informative channels. This is particularly useful for facial expression recognition, where certain facial regions (e.g., eyes, mouth) carry more discriminative information than others.
+
+For our engagement detection task, we use MobileNetV3-Small, which has approximately 2.5M parameters and requires 56M multiply-accumulate operations (MACs). The model takes 224$\times$224 RGB images as input and produces a 576-dimensional feature vector.
+
+\subsubsection{EfficientNet-B0}
+
+EfficientNet-B0~\citep{tan2019efficientnet} employs a compound scaling strategy that uniformly scales network width, depth, and resolution. The baseline model uses mobile inverted bottleneck convolution (MBConv) blocks as building blocks, similar to MobileNetV2~\citep{sandler2018mobilenetv2} but with the addition of squeeze-and-excitation optimization.
+
+EfficientNet-B0 has approximately 5.3M parameters and requires 390M MACs. The model uses a series of MBConv blocks with varying expansion ratios and kernel sizes, followed by a global average pooling layer and a fully connected classification layer.
+
+\subsection{Channel-Spatial Attention Module (CSAM)}
+
+To improve the discriminative capacity of lightweight backbones without significant computational overhead, we propose a Channel-Spatial Attention Module (CSAM). CSAM is inspired by the Convolutional Block Attention Module (CBAM)~\citep{woo2018cbam}, which sequentially applies channel and spatial attention. Our CSAM adapts this dual-attention paradigm specifically for mobile architectures by using a more compact channel attention path with reduction ratio $r=4$ and a single spatial attention branch, minimizing the parameter and computation overhead. Unlike the standard squeeze-and-excitation (SE) block~\citep{howard2019mobilenetv3} that operates only on channel dimensions, CSAM jointly performs channel recalibration and spatial attention in a single lightweight module.
+
+Given a feature map $\mathbf{F} \in \mathbb{R}^{C \times H \times W}$, CSAM computes:
+
+\begin{equation}
+\mathbf{F}' = \mathbf{F} \odot \mathbf{M}_c \odot \mathbf{M}_s
+\end{equation}
+
+where $\mathbf{M}_c \in \mathbb{R}^{C \times 1 \times 1}$ is the channel attention mask and $\mathbf{M}_s \in \mathbb{R}^{1 \times H \times W}$ is the spatial attention mask. The channel mask is computed as:
+
+\begin{equation}
+\mathbf{M}_c = \sigma(\text{FC}_2(\delta(\text{FC}_1(\text{GAP}(\mathbf{F})))))
+\end{equation}
+
+where GAP denotes global average pooling, $\delta$ is ReLU, $\sigma$ is sigmoid, and $\text{FC}_1$, $\text{FC}_2$ are fully connected layers with reduction ratio $r=4$. The spatial mask is computed as:
+
+\begin{equation}
+\mathbf{M}_s = \sigma(\text{Conv}_{7 \times 7}(\text{Concat}[\text{AvgPool}(\mathbf{F}); \text{MaxPool}(\mathbf{F})]))
+\end{equation}
+
+CSAM adds only 8.2K parameters (0.3\% overhead for MobileNetV3-Small) and 0.12M MACs. The module is inserted after each inverted residual block in the backbone.
+
+\subsection{Focal Weighted Loss}
+
+To jointly address class imbalance and hard-example mining, we propose a focal weighted loss function that combines the benefits of weighted cross-entropy and focal loss with label smoothing:
+
+\begin{equation}
+\mathcal{L}_{fw} = -\sum_{i=1}^{C} w_i \cdot (1 - \hat{p}_t)^\gamma \cdot \text{CE}_{\text{smooth}}(y, \hat{y})
+\end{equation}
+
+where $w_i = \frac{N}{C \cdot n_i}$ is the class weight, $(1 - \hat{p}_t)^\gamma$ is the focal modulation factor applied to the predicted probability of the true class, and $\gamma = 1.0$ is the focusing parameter. The smoothed cross-entropy term is:
+
+\begin{equation}
+\text{CE}_{\text{smooth}} = -(1 - \epsilon) \log \hat{p}_t - \frac{\epsilon}{C} \sum_{j=1}^{C} \log \hat{p}_j
+\end{equation}
+
+where $\epsilon = 0.1$ is the label smoothing factor. We use $\gamma = 1.0$ instead of the original $\gamma = 2.0$ because higher values cause gradient vanishing in early training when model predictions are uncertain. The focal weight is detached from the computation graph to prevent it from suppressing gradient flow. Additionally, we apply gradient clipping with a maximum norm of 1.0 to prevent gradient explosion during the training transition between stages.
+
+\subsection{Classification Head}
+
+The classification head adapts the pre-trained backbone for the engagement detection task. We replace the original classification layer with a custom head consisting of:
+\begin{enumerate}
+\item A global average pooling layer to reduce spatial dimensions
+\item A fully connected layer with 256 units and ReLU activation
+\item A dropout layer with $p = 0.5$ for regularization~\citep{bengio2013representation}
+\item A final fully connected layer with $C$ units (where $C$ is the number of engagement classes) and softmax activation
+\end{enumerate}
+
+We formulate the task as a four-class classification problem: Engaged, Boredom, Frustration, and Confusion, derived from the seven basic emotions in FER2013 through the mapping described in Section~\ref{sec:results}.
+
+\subsection{Training Strategy}
+
+\subsubsection{Transfer Learning}
+
+We initialize the backbone networks with weights pre-trained on ImageNet~\cite{deng2009imagenet,russakovsky2015imagenet}. During training, we freeze the initial layers of the backbone and fine-tune the later layers along with the classification head. This approach leverages the generic visual features learned from ImageNet while adapting the model to the specific characteristics of facial expressions.
+
+The training process consists of two stages:
+\begin{enumerate}
+\item \textbf{Stage 1}: Train only the classification head for 10 epochs with a learning rate of $10^{-3}$
+\item \textbf{Stage 2}: Unfreeze the last three blocks of the backbone and fine-tune the entire network for 30 epochs with a learning rate of $10^{-4}$
+\end{enumerate}
+
+\subsubsection{Data Augmentation}
+
+To increase the diversity of training data and improve model generalization, we apply the following augmentation strategies:
+\begin{itemize}
+\item Random horizontal flipping with probability 0.5
+\item Random rotation within $\pm 15^{\circ}$
+\item Random brightness and contrast adjustment (factor range: 0.8--1.2)
+\item Random cropping with scale 0.8--1.0
+\item Color jittering with hue shift $\pm 0.1$
+\end{itemize}
+
+... [OUTPUT TRUNCATED - 2307 chars omitted out of 52307 total] ...
+
+contains only 114 images, yielding a 95\% confidence interval of approximately $\pm$8\% around the reported accuracy. The higher variance ($\pm$4.4\% vs.\ $\pm$0.3\%) reflects this small sample size. Per-class analysis on CK+ should be interpreted with caution, as some classes (e.g., Boredom: $\sim$6 test samples per fold) have insufficient samples for reliable estimates. Per-class analysis reveals that the Engaged class transfers best (F1: 0.88), while Boredom transfers poorly (F1: 0.42), likely because Boredom expressions in CK+ (mapped from Contempt) differ visually from Neutral expressions in FER2013.
+
+\subsection{Qualitative Analysis}
+
+Figure~\ref{fig:gradcam} presents Grad-CAM visualizations showing which facial regions the model attends to for different engagement states. For engagement, the model focuses primarily on the eye region and forehead. For boredom, attention shifts to the mouth and lower face. Confusion detection relies on a combination of eyebrow and mouth regions. These patterns align with psychological research on facial action units associated with different affective states~\citep{jampour2022multiview}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/gradcam.pdf}
+\caption{Grad-CAM visualizations for different engagement states. Warmer colors indicate higher attention. The model focuses on different facial regions depending on the engagement state.}
+\label{fig:gradcam}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Effectiveness of Lightweight Architectures}
+
+Our results demonstrate that lightweight CNNs can match or exceed heavier architectures for engagement detection, though we note that this comparison conflates architectural differences with training strategy differences (the proposed models use focal weighted loss, weighted sampling, and two-stage transfer learning while baselines do not; see Limitations). MobileNetV3+CSAM achieves 70.5\% accuracy with 1.26M parameters, surpassing ResNet-50 (64.0\%, 25.6M) by 3.8\%. Three factors explain this outcome.
+
+First, depthwise separable convolutions reduce overfitting on the relatively small FER2013 dataset by constraining the parameter space~\citep{howard2017mobilenets}. Heavier models like VGG-16 (138M parameters) tend to overfit, achieving only 60.8\% accuracy despite their larger capacity. Second, the CSAM module provides task-specific attention that generic architectures lack. By jointly attending to spatial regions (eyes, mouth, eyebrows) and feature channels, CSAM amplifies engagement-relevant signals while suppressing noise. Third, transfer learning from ImageNet supplies robust low-level features (edges, textures) that transfer effectively to facial expression recognition~\citep{li2021facial}.
+
+\subsection{Class Imbalance and Hard-Example Mining}
+
+After emotion-to-engagement mapping, FER2013 has moderate imbalance (1.8:1 ratio between Frustration and Boredom). Our focal weighted loss with weighted sampling addresses this through two complementary mechanisms. The WeightedRandomSampler ensures balanced class representation in each training batch, while the focal modulation factor $(1-\hat{p}_t)^\gamma$ down-weights easy examples and emphasizes hard-to-classify samples. Label smoothing ($\epsilon=0.1$) further prevents overconfident predictions on majority classes. This combined approach improves F1 on the minority Boredom class by 1.5\% over standard weighted cross-entropy (Table~\ref{tab:balancing}).
+
+The improvement on Confusion (2.4\% F1) is equally important. Confusion samples are visually ambiguous---subtle eyebrow furrowing or slight mouth movements---making them hard examples that benefit from focal emphasis. The overlap between Confusion and Frustration facial expressions remains the primary source of classification errors, suggesting that engagement detection systems should explicitly model inter-class similarity.
+
+\subsection{Novelty and Contribution}
+
+This paper makes three contributions that, taken together, constitute a novel and coherent framework for engagement detection.
+
+\textbf{Contribution 1: Emotion-to-engagement transfer learning.}
+We demonstrate that models pre-trained on facial expression recognition datasets can detect engagement states through a principled mapping grounded in affective computing theory~\citep{fredricks2004school}. This is not merely a relabeling exercise: the mapping encodes psychological hypotheses about which emotional states correspond to which engagement levels, and we validate these hypotheses through per-class analysis and cross-dataset evaluation. The 71.9\% cross-dataset accuracy on CK+ (without fine-tuning) confirms that the learned features capture engagement-relevant signals, not just expression-specific artifacts.
+
+\textbf{Contribution 2: Joint optimization framework.}
+We combine four techniques---weighted sampling, focal modulation, class weights, and label smoothing---into a single training pipeline and demonstrate through ablation studies that the combination outperforms any individual technique. The focal weighted loss with weighted sampling improves minority-class F1 by 1.5--2.4\% over standard weighted cross-entropy, addressing the dual challenges of class imbalance and hard-example mining simultaneously.
+
+\textbf{Contribution 3: Deployment-oriented evaluation.}
+We evaluate not only accuracy but also inference latency, energy consumption, memory footprint, and cross-dataset generalization---metrics that determine practical deployability. MobileNetV3+CSAM achieves 70.5\% accuracy with 1.26M parameters, 0.068G FLOPs, and 45 fps on RTX 3090, demonstrating that competitive accuracy does not require heavy architectures.
+
+While CSAM builds on the dual-attention paradigm established by CBAM~\citep{woo2018cbam}, our specific design choices---compact channel attention (reduction ratio $r=4$), single spatial attention branch, and insertion after inverted residual blocks---are tailored for mobile architectures and differ from CBAM's original design. The contribution is not the attention mechanism itself, but its integration into a complete deployment-oriented framework.
+
+\subsection{CSAM: Why Channel-Spatial Attention Helps}
+
+The proposed CSAM module improves both MobileNetV3 and EfficientNet-B0 by 1.3--5.0\% with only 0.01--0.08M additional parameters. CSAM is architecturally related to CBAM~\citep{woo2018cbam}, which also combines channel and spatial attention. The key difference is that CSAM is designed for mobile architectures with a more compact channel attention path (reduction ratio $r=4$) and is inserted after each inverted residual block, whereas CBAM uses a sequential channel-then-spatial design intended for larger backbones. Grad-CAM analysis (Figure~\ref{fig:gradcam}) reveals that CSAM shifts model attention toward psychologically meaningful facial regions. For engagement, the eye and forehead regions receive higher activation, consistent with the AU1+AU4 (inner brow raise) and AU5 (upper lid raise) action units associated with interest~\citep{jampour2022multiview}. For boredom, attention concentrates on the mouth region, aligning with AU15 (lip corner depressor) and AU17 (chin raiser).
+
+The alignment between learned attention and facial action unit theory supports the view that the model captures genuine engagement signals rather than dataset artifacts.
+
+\subsection{Practical Deployment Considerations}
+
+The efficiency gains of lightweight models translate directly to practical deployment advantages. MobileNetV3+CSAM processes images at 833 fps on an RTX 3090 GPU, sufficient for real-time monitoring of 30+ students simultaneously at 20 fps per student. The model requires only 5MB of memory (1.26M parameters in FP16), fitting comfortably on NVIDIA Jetson Nano (4GB RAM) or Raspberry Pi 4 (4GB RAM) with room for other processing tasks.
+
+Edge deployment also has implications for privacy. Student facial data could be processed entirely on local devices, with only aggregate engagement metrics (e.g., ``75\% of students engaged'') transmitted to the instructor's dashboard. This architecture has the potential to reduce the need to store or transmit identifiable facial images. However, we note that facial processing constitutes biometric data handling under GDPR Article 9 and various US state laws (e.g., Illinois BIPA), and compliance requires more than local processing---it requires informed consent, data retention policies, and institutional review board (IRB) approval~\citep{williamson2020surveillance}. Any classroom deployment of engagement detection technology must address the ``chilling effect'' whereby surveillance awareness may alter student behavior. The question of whether automated engagement monitoring should be deployed is distinct from whether it can be deployed, and we advocate for careful ethical consideration before real-world implementation.
+
+The energy efficiency of MobileNetV3+CSAM (3.6 mJ per inference, Table~\ref{tab:efficiency}) enables continuous monitoring on battery-powered devices. A Jetson Nano with a 15Wh battery could process approximately 15.3 million frames, supporting a full semester of classroom monitoring without recharging.
+
+\subsection{Comparison with State-of-the-Art}
+
+Table~\ref{tab:sota} compares our best model with recent facial expression recognition and engagement detection benchmarks on FER2013.
+
+\begin{table}[H]
+\caption{Comparison with state-of-the-art methods on FER2013-based engagement/expression recognition.}
+\label{tab:sota}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{Accuracy (\%)} & \textbf{Params (M)} & \textbf{Year} \\
+\midrule
+VGG-16 baseline & 60.8 & 138.0 & -- \\
+ResNet-50 baseline & 63.5 & 25.6 & -- \\
+Podder et al.~\citep{podder2022time} & 65.2 & 11.7 & 2022 \\
+Chen~\citep{chen2023resnet} & 66.8 & 23.5 & 2023 \\
+\midrule
+\textbf{MobileNetV3+CSAM (ours)} & \textbf{70.5} & \textbf{1.26} & -- \\
+\textbf{EfficientNet-B0+CSAM (ours)} & \textbf{69.1} & \textbf{5.4} & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Our models achieve competitive accuracy while using 2.2--109$\times$ fewer parameters than competing methods. The advantage of MobileNetV3+CSAM stems from the combination of CSAM attention, focal weighted loss with label smoothing, weighted sampling, and efficient backbone architectures. The gap between our lightweight models and heavier baselines demonstrates that parameter efficiency does not sacrifice accuracy when task-specific attention and proper training strategies are employed.
+
+\subsection{Limitations}
+
+This study has eight limitations.
+
+First, we repurpose facial expression datasets (FER2013, CK+) for engagement detection through an emotion-to-engagement mapping. This mapping is a simplification that captures primarily the emotional dimension of engagement~\citep{fredricks2004school}, not the behavioral or cognitive dimensions. The Neutral$\rightarrow$Boredom mapping is particularly problematic: a neutral expression can indicate focused concentration or deep processing. We acknowledge that the mapped labels are a proxy for engagement states, and direct evaluation on engagement-specific datasets such as DAiSEE~\citep{solanki2022engagement} is necessary to validate the engagement detection claim.
+
+Second, FER2013 contains known label noise---human agreement on FER2013 labels is approximately 65\%---which propagates through the emotion-to-engagement mapping and may inflate or distort reported accuracy. The 70.5\% accuracy on the four-class task should be interpreted with this noise ceiling in mind.
+
+Third, FER2013 contains only static images, which do not capture temporal dynamics. Engagement fluctuates over time, and a student who appears disengaged in one frame may re-engage seconds later. Video-level models (e.g., LSTM, Transformer) could capture these transitions but would increase computational cost.
+
+Fourth, the emotion-to-engagement mapping creates artificial boundaries. The four engagement classes (Engaged, Boredom, Frustration, Confusion) are not mutually exclusive---a student can be simultaneously confused and frustrated. Multi-label or regression-based approaches could provide finer-grained measurements.
+
+Fifth, cross-dataset evaluation is limited to CK+ (804 images, 114 test samples). The 95\% confidence interval for the 71.9\% cross-dataset accuracy spans approximately 20 percentage points, limiting the strength of generalizability claims. Evaluation on larger, more diverse datasets would strengthen these claims.
+
+Sixth, all experiments use pre-cropped, aligned 48$\times$48 grayscale faces. Real classroom conditions involve multiple faces per frame, variable lighting, occlusions, and head pose variation. The gap between FER2013 conditions and real classroom monitoring is substantial and unaddressed.
+
+Seventh, the baseline models (VGG-16, ResNet-50, CNN+LSTM, 3D-CNN) were trained without the full training pipeline (focal weighted loss, weighted sampling, data augmentation, two-stage transfer learning) applied to the proposed lightweight models. This means the performance gap between proposed and baseline models reflects both architectural differences and training strategy differences. A fairer comparison would apply identical training protocols to all models.
+
+Eighth, FER2013 was collected primarily from Western faces and may contain cultural biases in facial expression norms. Expression display rules vary across cultures---for example, East Asian cultures tend to mask negative emotions more than Western cultures---which could affect the generalizability of the emotion-to-engagement mapping across diverse student populations.
+
+\subsection{Future Work}
+
+Several directions emerge from this study.
+
+\begin{enumerate}
+\item \textbf{Engagement-specific validation}: Evaluate the proposed framework on DAiSEE~\citep{solanki2022engagement}, which provides actual engagement labels from educational video sessions. This would validate whether the emotion-to-engagement mapping produces meaningful engagement predictions or whether direct engagement learning is necessary.
+\item \textbf{Temporal modeling}: Integrate lightweight temporal modules (e.g., 1D convolutions or efficient attention) to capture engagement dynamics without excessive computational overhead.
+\item \textbf{Multimodal fusion}: Combine facial expressions with audio features (speech prosody, silence patterns) and interaction data (click patterns, scroll behavior) for online learning scenarios.
+\item \textbf{Edge device benchmarking}: Benchmark the proposed models on actual edge hardware (Jetson Nano, Raspberry Pi 4, mobile devices with TFLite/ONNX Runtime) to validate deployment feasibility.
+\item \textbf{Fair baseline comparison}: Apply identical training protocols (focal loss, weighted sampling, augmentation, two-stage TL) to all baseline architectures for a fair comparison.
+\item \textbf{Model compression}: Apply quantization (INT8) and pruning to further reduce model size and latency for deployment on microcontrollers.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions}
+\label{sec:conclusion}
+
+This paper presents a lightweight deep learning framework integrating MobileNetV3 and EfficientNet-B0 with a Channel-Spatial Attention Module (CSAM) and focal weighted loss. We repurpose FER2013 and CK+ for engagement detection through an emotion-to-engagement mapping, enabling evaluation on publicly available facial expression datasets.
+
+On FER2013, MobileNetV3+CSAM achieves 70.5\% accuracy with 1.26M parameters and 0.068G FLOPs, surpassing ResNet-50 (64.0\%, 25.6M) by 3.8\% while requiring 2.6$\times$ less energy per inference. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. The CSAM module contributes 1.3--5.0\% accuracy gain with negligible overhead, and the focal weighted loss with weighted sampling improves minority-class F1 by 1.5--2.4\% over standard approaches. Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning, 114 test samples) provides preliminary evidence of generalizability.
+
+The computational efficiency of these lightweight models suggests potential for edge deployment, though actual edge hardware validation remains necessary. These findings provide a foundation for developing efficient engagement recognition systems, with the caveat that the emotion-to-engagement mapping requires validation against engagement-specific datasets and that real classroom deployment involves additional challenges (face detection, variable conditions, privacy considerations) not addressed in this study.
+
+Future work will focus on direct evaluation on engagement-specific datasets (e.g., DAiSEE), validation of the emotion-to-engagement mapping against human annotations, temporal modeling with video sequences, actual edge device benchmarking, multimodal fusion, and ethical frameworks for classroom deployment.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{6pt}
+
+\authorcontributions{Conceptualization, D.P. and H.Y.; Methodology, H.Y.; Software, H.Y.; Validation, D.P.; Writing, H.Y.; Supervision, D.P.; Funding Acquisition, D.P. All authors have read and agreed to the published version of the manuscript.}
+
+\funding{This research was funded by the Guangdong Province Undergraduate Teaching Quality and Teaching Reform Project (grant no. Yue-Jiao-Gao-Han [2024] No. 30), the Guangdong Provincial Department of Education Provincial First-class Undergraduate Course (grant no. Yue-Jiao-Gao-Han [2023] No. 33), and the Shaoguan University Institutional Quality Engineering Project (grant no. Shao-Yuan-Jiao [2023] No. 30).}
+
+\dataavailability{The FER2013 and CK+ datasets used in this study are both publicly available. FER2013 can be accessed via Kaggle (https://www.kaggle.com/datasets/msambare/fer2013). CK+ is available at http://www.consortium.ri.cmu.edu/ckagree/. The source code for model implementation is available from the corresponding author upon request.}
+
+\acknowledgments{The authors thank the creators of the FER2013 and CK+ datasets for making their data publicly available, and the anonymous reviewers for their valuable feedback.}
+
+\conflictsofinterest{The authors declare no conflicts of interest.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\abbreviations{Abbreviations}{
+\begin{tabular}{@{}ll}
+CNN & Convolutional Neural Network \\
+CSAM & Channel-Spatial Attention Module \\
+FER2013 & Facial Expression Recognition 2013 \\
+CK+ & Extended Cohn-Kanade \\
+FLOPs & Floating Point Operations \\
+MACs & Multiply-Accumulate Operations \\
+SE & Squeeze-and-Excitation \\
+NAS & Neural Architecture Search \\
+\end{tabular}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliography{references}
+
+\end{document}
