@@ -87,8 +87,11 @@ def build_transforms(cfg: DataConfig, augmentation_preset: str = "full", is_trai
     return transforms.Compose(t)
 
 
-def scan_processed_dir(processed_dir: str, split: str) -> Tuple[List[str], List[int]]:
-    """Scan processed directory for images and labels."""
+def scan_processed_dir(processed_dir: str, split: str, binary_map: bool = False) -> Tuple[List[str], List[int]]:
+    """Scan processed directory for images and labels.
+    
+    If binary_map=True, maps 0,1 → 0 (Disengaged) and 2,3 → 1 (Engaged).
+    """
     split_dir = os.path.join(processed_dir, split)
     image_paths = []
     labels = []
@@ -101,6 +104,8 @@ def scan_processed_dir(processed_dir: str, split: str) -> Tuple[List[str], List[
         if not os.path.isdir(class_dir):
             continue
         label = int(class_id)
+        if binary_map:
+            label = 1 if label >= 2 else 0
         for fname in sorted(os.listdir(class_dir)):
             if fname.lower().endswith((".jpg", ".jpeg", ".png")):
                 image_paths.append(os.path.join(class_dir, fname))
@@ -134,12 +139,12 @@ def get_dataloaders(
 ) -> Dict[str, DataLoader]:
     """Create train/val/test dataloaders from preprocessed folder structure."""
     # Load all data (try "val" and "validation" for compatibility)
-    train_paths, train_labels = scan_processed_dir(cfg.processed_dir, "train")
+    train_paths, train_labels = scan_processed_dir(cfg.processed_dir, "train", binary_map=cfg.binary)
     try:
-        val_paths, val_labels = scan_processed_dir(cfg.processed_dir, "val")
+        val_paths, val_labels = scan_processed_dir(cfg.processed_dir, "val", binary_map=cfg.binary)
     except FileNotFoundError:
-        val_paths, val_labels = scan_processed_dir(cfg.processed_dir, "validation")
-    test_paths, test_labels = scan_processed_dir(cfg.processed_dir, "test")
+        val_paths, val_labels = scan_processed_dir(cfg.processed_dir, "validation", binary_map=cfg.binary)
+    test_paths, test_labels = scan_processed_dir(cfg.processed_dir, "test", binary_map=cfg.binary)
 
     if train_cfg.num_folds <= 1:
         # No cross-validation: use the provided train/val split directly

@@ -65,6 +65,7 @@ class DataConfig:
     # Image
     image_size: int = 224
     num_classes: int = 4
+    binary: bool = False  # If True, merge to 2 classes (Engaged vs Disengaged)
     class_names: List[str] = field(default_factory=lambda: ENGAGEMENT_CLASSES)
 
     # Split ratios (used when dataset has no official split)
@@ -81,6 +82,11 @@ class DataConfig:
         self.dataset_name = name
         self.raw_dir = os.path.join(PROJECT_ROOT, "data", name)
         self.processed_dir = os.path.join(PROJECT_ROOT, "data", "processed", name)
+        
+        # DAiSEE: use binary classification (Engaged vs Disengaged)
+        if name == "daisee":
+            self.binary = True
+            self.num_classes = 2
 
 
 @dataclass

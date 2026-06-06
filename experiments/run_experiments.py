@@ -271,7 +271,7 @@ def main():
     print(f"{'='*70}")
     eff_models = {}
     for name, exp_cfg in experiments.items():
-        model = build_model_from_config(exp_cfg, model_cfg, num_classes=4)
+        model = build_model_from_config(exp_cfg, model_cfg, num_classes=data_cfg.num_classes)
         eff_models[name] = model.to(device)
 
     eff_report_result = efficiency_report(eff_models, device)
