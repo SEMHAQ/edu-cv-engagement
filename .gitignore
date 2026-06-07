@@ -4,45 +4,76 @@ CLAUDE.md
 
 # MDPI templates (not paper content)
 MDPI_template_ACS/
-MDPI_template_ACS.zip
 MDPI_template_APA/
 MDPI_template_APA.zip
 
-# LaTeX build artifacts
-*.aux
-*.log
-*.out
-*.toc
-*.bbl
-*.blg
-*.fls
-*.fdb_latexmk
-*.synctex.gz
-*.nav
-*.snm
-*.vrb
-
-# LaTeX build artifacts in Definitions/
-paper/Definitions/logo-mdpi-eps-converted-to.pdf
-
-# Kaggle
+# Kaggle credentials
 .kaggle/
+access_token
+
+# Data (large datasets)
+data/
+
+# Experiment outputs
+experiments/checkpoints/
+experiments/results/
+experiments/__pycache__/
+experiments/**/__pycache__/
+
+# ARS review reports (local only)
+ars-review/
+
+# Generated files
+paper/main.pdf
+paper/main.log
+paper/main.aux
+paper/main.bbl
+paper/main.blg
+paper/main.out
+paper/main.synctex.gz
+paper/*.aux
+paper/*.log
+paper/*.bbl
+paper/*.blg
+paper/*.out
+
+# Unused figures (only keep those used in paper)
+paper/figures/ablation.pdf
+paper/figures/ablation.png
+paper/figures/comparison.pdf
+paper/figures/comparison.png
+paper/figures/efficiency.pdf
+paper/figures/efficiency.png
+paper/figures/framework.pdf
+paper/figures/framework.png
+paper/figures/model_comparison.pdf
+paper/figures/model_comparison.png
+paper/figures/perclass.pdf
+paper/figures/perclass.png
+paper/figures/training_curves.pdf
+paper/figures/training_curves.png
+
+# Temp files
+paper/main_old.tex
+paper/reference_verification.md
+paper/figures/fix_*.py
+
+# Submission
+submission/
+Education_Sciences_Submission.zip
+cover_letter.pdf
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Data (large datasets)
-data/
-experiments/checkpoints/
-experiments/results/
+MDPI_template_ACS.zip
 paper/peer_review/
-experiments/__pycache__/
-
-# ARS review reports (local only)
-ars-review/
-paper/main_old.tex
-paper/reference_verification.md
-paper/figures/fix_*.py
-submission/
-Education_Sciences_Submission.zip
+paper/Definitions/logo-mdpi-eps-converted-to.pdf
+cover_letter.aux
+cover_letter.log
+cover_letter.out
