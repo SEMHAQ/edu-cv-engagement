@@ -41,3 +41,6 @@ experiments/__pycache__/
 
 # ARS review reports (local only)
 ars-review/
+paper/main_old.tex
+paper/reference_verification.md
+paper/figures/fix_*.py
