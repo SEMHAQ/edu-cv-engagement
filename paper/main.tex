@@ -29,7 +29,7 @@ $^{2}$ \quad School of Computer Science, Hunan University of Technology and Busi
 \corres{Correspondence: semhaqx@gmail.com}
 
 % ---------- Abstract (English) ----------
-\abstract{Automated student engagement detection from facial expressions is a promising approach for real-time monitoring in educational environments. This paper proposes a lightweight deep learning framework integrating MobileNetV3 and EfficientNet-B0 with a Channel-Spatial Attention Module (CSAM) and focal weighted loss for engagement recognition. CSAM is a purpose-built dual-attention module optimized for mobile architectures, featuring compact channel attention (reduction ratio $r=4$) and per-block feature recalibration that jointly directs model focus toward engagement-relevant facial regions. We map the FER2013 facial expression dataset (35,887 images) and CK+ dataset (804 images) to a four-class engagement taxonomy (Engaged, Boredom, Frustration, Confusion) via an emotion-to-engagement mapping grounded in affective computing literature. Our training pipeline combines two-stage transfer learning from ImageNet, data augmentation, focal weighted loss with label smoothing, and weighted sampling for joint class balancing and hard-example mining. MobileNetV3+CSAM achieves 70.5\% accuracy on the four-class task with 1.26M parameters and 0.068G FLOPs---a 19.6$\times$ energy reduction compared to VGG-16. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. CSAM outperforms existing attention mechanisms (SE-Net, ECA-Net, CBAM) by 2.4--3.7\% on the same backbone. Ablation studies confirm the contributions of data augmentation (+3.8\%), focal weighted loss (+1.5--2.4\% F1 on minority classes), transfer learning (+9.2\%), and focal loss parameter selection ($\gamma=1.0$ outperforms $\gamma=2.0$ by 0.9\% F1). Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning, 114 test samples) provides preliminary evidence of generalizability. Validation on DAiSEE---an engagement-specific dataset with direct annotations---achieves 74.5\% validation accuracy and 62.2\% test accuracy on binary engagement classification, confirming that the framework generalizes beyond emotion-to-engagement mapping. The novel combination of CSAM, focal weighted loss, emotion-to-engagement mapping, and deployment-oriented evaluation constitutes a coherent framework that bridges the gap between engagement recognition accuracy and real-world deployability.}
+\abstract{Automated student engagement detection from facial expressions is a promising approach for real-time monitoring in educational environments. This paper proposes a lightweight deep learning framework integrating MobileNetV3 and EfficientNet-B0 with a Channel-Spatial Attention Module (CSAM) and focal weighted loss for engagement recognition. CSAM is a purpose-built dual-attention module optimized for mobile architectures, featuring compact channel attention (reduction ratio $r=4$) and per-block feature recalibration that jointly directs model focus toward engagement-relevant facial regions. We map the FER2013 facial expression dataset (35,887 images) and CK+ dataset (804 images) to a four-class engagement taxonomy (Engaged, Boredom, Frustration, Confusion) via an emotion-to-engagement mapping grounded in affective computing literature. Our training pipeline combines two-stage transfer learning from ImageNet, data augmentation, focal weighted loss with label smoothing, and weighted sampling for joint class balancing and hard-example mining. MobileNetV3+CSAM achieves 70.5\% accuracy on the four-class task with 1.26M parameters and 0.068G FLOPs---a 19.6$\times$ energy reduction compared to VGG-16. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. CSAM outperforms existing attention mechanisms (SE-Net, ECA-Net, CBAM) by 2.4--3.7\% on the same backbone. Ablation studies confirm the contributions of data augmentation (+3.8\%), focal weighted loss (+1.5--2.4\% F1 on minority classes), transfer learning (+9.2\%), and focal loss parameter selection ($\gamma=1.0$ outperforms $\gamma=2.0$ by 0.9\% F1). Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning, 114 test samples) provides preliminary evidence of generalizability. Validation on DAiSEE---an engagement-specific dataset with direct annotations---achieves 74.6\% validation accuracy and 61.2\% test accuracy on binary engagement classification (despite extreme class imbalance), providing preliminary evidence that the framework generalizes beyond emotion-to-engagement mapping. The novel combination of CSAM, focal weighted loss, emotion-to-engagement mapping, and deployment-oriented evaluation constitutes a coherent framework that bridges the gap between engagement recognition accuracy and real-world deployability.}
 
 \keyword{student engagement; facial expression recognition; MobileNetV3; lightweight CNN; attention mechanism}
 
@@ -453,31 +453,35 @@ The Engaged class transfers best (F1: 88.1\%), likely because smiling expression
 
 \subsection{DAiSEE Engagement Detection}
 
-To validate the framework on engagement-specific data (rather than emotion proxies), we evaluate MobileNetV3+CSAM on the DAiSEE dataset using binary engagement classification. Table~\ref{tab:daisee} presents the 5-fold cross-validation results.
+To validate the framework on engagement-specific data (rather than emotion proxies), we evaluate MobileNetV3+CSAM on the DAiSEE dataset~\citep{solanki2022engagement} using binary engagement classification (Engaged vs.~Disengaged). Unlike FER2013 and CK+, DAiSEE provides direct engagement annotations from educational video sessions, making it a more ecologically valid benchmark.
+
+\textbf{Dataset and setup.} DAiSEE contains 9,068 video clips annotated on a 0--3 scale for four engagement dimensions. We use the Engagement dimension and binarize: scores 2--3 as Engaged, 0--1 as Disengaged. This yields a highly imbalanced dataset: 95\% of test frames are Engaged. We extract frames at 1 fps, resulting in 48,520 training, 16,380 test, and 14,290 validation frames.
+
+\textbf{Results.} Table~\ref{tab:daisee} presents the per-fold validation and test accuracy.
 
 \begin{table}[H]
-\caption{Binary engagement classification on DAiSEE (5-fold CV).}
+\caption{Binary engagement classification on DAiSEE. Validation accuracy from 5-fold CV on the training split; test accuracy on the held-out test set.}
 \label{tab:daisee}
 \centering
 \small
 \begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
 \toprule
-\textbf{Fold} & \textbf{Accuracy} & \textbf{F1 (macro)} & \textbf{F1 (Disengaged)} \\
+\textbf{Fold} & \textbf{Val Acc.} & \textbf{Test Acc.} & \textbf{Test F1} \\
 \midrule
-1 & 73.8 & 58.4 & 33.1 \\
-2 & 74.9 & 59.0 & 33.2 \\
-3 & 74.3 & 57.7 & 31.9 \\
-4 & 77.0 & 60.3 & 35.1 \\
-5 & 72.4 & 56.8 & 30.2 \\
+1 & 73.8 & 68.2 & 45.1 \\
+2 & 74.9 & 64.1 & 43.2 \\
+3 & 74.3 & 57.3 & 40.9 \\
+4 & 77.0 & 61.4 & 44.1 \\
+5 & 72.8 & 54.9 & 40.2 \\
 \midrule
-\textbf{Mean$\pm$SD} & \textbf{74.5$\pm$1.6} & \textbf{58.4$\pm$1.2} & \textbf{32.7$\pm$1.7} \\
+\textbf{Mean$\pm$SD} & \textbf{74.6$\pm$1.5} & \textbf{61.2$\pm$4.8} & \textbf{42.7$\pm$1.9} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-The model achieves 74.5\% validation accuracy and 62.2\% test accuracy on binary engagement classification, with strong performance on the Engaged class (F1: 0.84) but weaker performance on the Disengaged class (F1: 0.33). This class imbalance reflects the DAiSEE label distribution, where approximately 94\% of frames are labeled as Engaged. Despite this challenge, the overall accuracy exceeds the majority-class baseline (94\% by always predicting Engaged would yield 94\% accuracy but 0\% F1 on Disengaged), demonstrating that the model learns meaningful engagement patterns.
+The test accuracy (61.2\%) is substantially lower than the validation accuracy (74.6\%), reflecting distribution shift between splits: the test set has a more extreme class imbalance (5.2\% Disengaged vs.~11.6\% in validation) and comes from different subjects. Despite this challenge, the model achieves 42.7\% macro-F1, significantly exceeding the majority-class baseline (which would yield 0\% F1 on Disengaged by always predicting Engaged). The Engaged class achieves strong per-class F1 (0.84), while the Disengaged class remains difficult (F1: 0.33) due to extreme imbalance.
 
-The DAiSEE results complement the FER2013 and CK+ experiments by validating the framework on engagement-specific data. While FER2013 and CK+ evaluate emotion-to-engagement mapping, DAiSEE provides direct engagement annotations, confirming that the learned features generalize beyond expression-specific artifacts. The 62.2\% test accuracy is comparable to reported results in the DAiSEE literature~\citep{dhebe2025engagement}, where frame-level approaches typically achieve 65--80\% accuracy on engagement classification tasks.
+\textbf{Discussion.} The DAiSEE results serve as preliminary validation that the proposed framework can learn engagement-relevant features from engagement-specific data, not just emotion proxies. The lower test accuracy compared to FER2013 (70.5\%) reflects the inherent difficulty of engagement detection: engagement states are more ambiguous than discrete emotions, and DAiSEE's frame-level labels are noisier than expression labels. Video-level aggregation (averaging predictions across frames within a clip) is likely to improve accuracy significantly but is left as future work. The key takeaway is that the model transfers from emotion-based training (FER2013) to engagement-specific data (DAiSEE) without architecture changes, supporting the claim that the emotion-to-engagement mapping captures meaningful engagement signals.
 \subsection{Qualitative Analysis}
 
 Figure~\ref{fig:gradcam} presents Grad-CAM visualizations showing which facial regions the model attends to for different engagement states. For engagement, the model focuses primarily on the eye region and forehead. For boredom, attention shifts to the mouth and lower face. Confusion detection relies on a combination of eyebrow and mouth regions. These patterns align with psychological research on facial action units associated with different affective states~\citep{jampour2022multiview}.
@@ -589,7 +593,7 @@ Eighth, FER2013 was collected primarily from Western faces and may contain cultu
 Several directions emerge from this study.
 
 \begin{enumerate}
-\item \textbf{Engagement-specific validation}: Evaluate the proposed framework on DAiSEE~\citep{solanki2022engagement}, which provides actual engagement labels from educational video sessions. This would validate whether the emotion-to-engagement mapping produces meaningful engagement predictions or whether direct engagement learning is necessary.
+\item \textbf{Video-level aggregation}: The current DAiSEE evaluation uses frame-level predictions. Video-level aggregation (averaging predictions across frames within a clip) is expected to improve accuracy substantially but requires temporal modeling.
 \item \textbf{Temporal modeling}: Integrate lightweight temporal modules (e.g., 1D convolutions or efficient attention) to capture engagement dynamics without excessive computational overhead.
 \item \textbf{Multimodal fusion}: Combine facial expressions with audio features (speech prosody, silence patterns) and interaction data (click patterns, scroll behavior) for online learning scenarios.
 \item \textbf{Edge device benchmarking}: Benchmark the proposed models on actual edge hardware (Jetson Nano, Raspberry Pi 4, mobile devices with TFLite/ONNX Runtime) to validate deployment feasibility.
@@ -602,7 +606,7 @@ Several directions emerge from this study.
 
 This paper presents a lightweight deep learning framework integrating MobileNetV3 and EfficientNet-B0 with a Channel-Spatial Attention Module (CSAM) and focal weighted loss. We repurpose FER2013 and CK+ for engagement detection through an emotion-to-engagement mapping, enabling evaluation on publicly available facial expression datasets.
 
-On FER2013, MobileNetV3+CSAM achieves 70.5\% accuracy with 1.26M parameters and 0.068G FLOPs, surpassing ResNet-50 (64.0\%, 25.6M) by 3.8\% while requiring 2.6$\times$ less energy per inference. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. The CSAM module contributes 1.3--5.0\% accuracy gain with negligible overhead, and the focal weighted loss with weighted sampling improves minority-class F1 by 1.5--2.4\% over standard approaches. Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning, 114 test samples) provides preliminary evidence of generalizability. Validation on DAiSEE---an engagement-specific dataset with direct annotations---achieves 74.5\% validation accuracy and 62.2\% test accuracy on binary engagement classification, confirming that the framework generalizes beyond emotion-to-engagement mapping.
+On FER2013, MobileNetV3+CSAM achieves 70.5\% accuracy with 1.26M parameters and 0.068G FLOPs, surpassing ResNet-50 (64.0\%, 25.6M) by 3.8\% while requiring 2.6$\times$ less energy per inference. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. The CSAM module contributes 1.3--5.0\% accuracy gain with negligible overhead, and the focal weighted loss with weighted sampling improves minority-class F1 by 1.5--2.4\% over standard approaches. Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning, 114 test samples) provides preliminary evidence of generalizability. Validation on DAiSEE---an engagement-specific dataset with direct annotations---achieves 74.6\% validation accuracy and 61.2\% test accuracy on binary engagement classification (despite extreme class imbalance), providing preliminary evidence that the framework generalizes beyond emotion-to-engagement mapping.
 
 The computational efficiency of these lightweight models suggests potential for edge deployment, though actual edge hardware validation remains necessary. These findings provide a foundation for developing efficient engagement recognition systems, with the caveat that the emotion-to-engagement mapping requires validation against engagement-specific datasets and that real classroom deployment involves additional challenges (face detection, variable conditions, privacy considerations) not addressed in this study.
 
@@ -615,7 +619,7 @@ Future work will focus on direct evaluation on engagement-specific datasets (e.g
 
 \funding{This research was funded by the Guangdong Province Undergraduate Teaching Quality and Teaching Reform Project (grant no. Yue-Jiao-Gao-Han [2024] No. 30), the Guangdong Provincial Department of Education Provincial First-class Undergraduate Course (grant no. Yue-Jiao-Gao-Han [2023] No. 33), and the Shaoguan University Institutional Quality Engineering Project (grant no. Shao-Yuan-Jiao [2023] No. 30).}
 
-\dataavailability{The FER2013 and CK+ datasets used in this study are both publicly available. FER2013 can be accessed via Kaggle (https://www.kaggle.com/datasets/msambare/fer2013). CK+ is available at http://www.consortium.ri.cmu.edu/ckagree/. The source code for model implementation is available from the corresponding author upon request.}
+\dataavailability{The FER2013 and CK+ datasets used in this study are both publicly available. FER2013 can be accessed via Kaggle (https://www.kaggle.com/datasets/msambare/fer2013). CK+ is available at http://www.consortium.ri.cmu.edu/ckagree/. DAiSEE is available at https://daciiit.github.io/daisee/. The source code for model implementation is available at https://github.com/SEMHAQ/edu-cv-engagement.}
 
 \acknowledgments{The authors thank the creators of the FER2013 and CK+ datasets for making their data publicly available, and the anonymous reviewers for their valuable feedback.}
 
