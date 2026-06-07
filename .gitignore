@@ -38,3 +38,6 @@ experiments/checkpoints/
 experiments/results/
 paper/peer_review/
 experiments/__pycache__/
+
+# ARS review reports (local only)
+ars-review/
