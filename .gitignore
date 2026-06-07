@@ -24,7 +24,6 @@ experiments/**/__pycache__/
 ars-review/
 
 # Generated files
-paper/main.pdf
 paper/main.log
 paper/main.aux
 paper/main.bbl
@@ -60,8 +59,6 @@ paper/figures/fix_*.py
 
 # Submission
 submission/
-Education_Sciences_Submission.zip
-cover_letter.pdf
 
 # Python
 __pycache__/
