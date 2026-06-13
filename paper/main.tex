@@ -18,7 +18,7 @@
 \datepublished{XX Month 2026}
 
 % ---------- Title ----------
-\Title{Deep Learning for Student Engagement Detection: A Lightweight CNN Approach for Educational Environments}
+\Title{Lightweight Attention-Enhanced CNN for Real-Time Student Engagement Detection on Edge Devices}
 
 % ---------- Authors ----------
 \Author{Donghai Peng $^{1}$ and Huanjie Yu $^{2,}$*}
@@ -31,7 +31,7 @@ $^{2}$ \quad School of Computer Science, Hunan University of Technology and Busi
 % ---------- Abstract (English) ----------
 \abstract{Automated student engagement detection from facial expressions is a promising approach for real-time monitoring in educational environments. This paper proposes a lightweight deep learning framework integrating MobileNetV3 and EfficientNet-B0 with a Channel-Spatial Attention Module (CSAM) and focal weighted loss for engagement recognition. CSAM is a purpose-built dual-attention module optimized for mobile architectures, featuring compact channel attention (reduction ratio $r=4$) and per-block feature recalibration that jointly directs model focus toward engagement-relevant facial regions. We map the FER2013 facial expression dataset (35,887 images) and CK+ dataset (804 images) to a four-class engagement taxonomy (Engaged, Boredom, Frustration, Confusion) via an emotion-to-engagement mapping grounded in affective computing literature. Our training pipeline combines two-stage transfer learning from ImageNet, data augmentation, focal weighted loss with label smoothing, and weighted sampling for joint class balancing and hard-example mining. MobileNetV3+CSAM achieves 70.5\% accuracy on the four-class task with 1.26M parameters and 0.068G FLOPs---a 19.6$\times$ energy reduction compared to VGG-16. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. CSAM outperforms existing attention mechanisms (SE-Net, ECA-Net, CBAM) by 2.4--3.7\% on the same backbone. Ablation studies confirm the contributions of data augmentation (+3.8\%), focal weighted loss (+1.5--2.4\% F1 on minority classes), transfer learning (+9.2\%), and focal loss parameter selection ($\gamma=1.0$ outperforms $\gamma=2.0$ by 0.9\% F1). Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning, 114 test samples) provides preliminary evidence of generalizability. Validation on DAiSEE---an engagement-specific dataset with direct annotations---achieves 74.5\% accuracy on binary engagement classification, confirming that the framework generalizes beyond emotion-to-engagement mapping. The novel combination of CSAM, focal weighted loss, emotion-to-engagement mapping, and deployment-oriented evaluation constitutes a coherent framework that bridges the gap between engagement recognition accuracy and real-world deployability.}
 
-\keyword{student engagement; facial expression recognition; MobileNetV3; lightweight CNN; attention mechanism}
+\keyword{edge computing; student engagement; facial expression recognition; MobileNetV3; lightweight CNN; attention mechanism; real-time inference}
 
 % ---------- Chinese abstract ----------
 
