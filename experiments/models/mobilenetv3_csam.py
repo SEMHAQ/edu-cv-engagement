@@ -85,7 +85,7 @@ class MobileNetV3CSAM(nn.Module):
         for i, block in enumerate(self.features):
             x = block(x)
             channels = x.shape[1]
-            self.csam_modules.append(CSAM(channels, reduction, kernel_size))
+            self.csam_modules.append(CSAM(channels, reduction))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.use_csam and self.csam_modules is not None:

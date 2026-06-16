@@ -1,9 +1,10 @@
 """
-Channel-Spatial Attention Module (CSAM)
+Channel-Spatial Attention Module (CSAM) with Multi-Scale Spatial Attention
 
-As described in the paper:
+Enhanced version with:
 - Channel attention: GAP -> FC -> ReLU -> FC -> sigmoid (reduction ratio r=4)
-- Spatial attention: AvgPool+MaxPool -> 7x7 Conv -> sigmoid
+- Multi-scale spatial attention: parallel 3x3, 5x5, 7x7 convolutions
+- Adaptive fusion: learnable weights for multi-scale spatial features
 - Output: F' = F * M_c * M_s
 """
 
@@ -32,33 +33,51 @@ class ChannelAttention(nn.Module):
         return x * y
 
 
-class SpatialAttention(nn.Module):
-    """Spatial attention via avg+max pool concatenation."""
+class MultiScaleSpatialAttention(nn.Module):
+    """
+    Multi-scale spatial attention with parallel convolutions at different scales.
+    Captures both local (3x3) and global (7x7) spatial patterns.
+    """
 
-    def __init__(self, kernel_size: int = 7):
+    def __init__(self, channels: int):
         super().__init__()
-        padding = kernel_size // 2
-        self.conv = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
+        # Parallel multi-scale convolutions
+        self.conv3x3 = nn.Conv2d(2, 1, 3, padding=1, bias=False)
+        self.conv5x5 = nn.Conv2d(2, 1, 5, padding=2, bias=False)
+        self.conv7x7 = nn.Conv2d(2, 1, 7, padding=3, bias=False)
+        
+        # Adaptive fusion weights
+        self.alpha = nn.Parameter(torch.ones(3) / 3)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         avg_out = torch.mean(x, dim=1, keepdim=True)
         max_out, _ = torch.max(x, dim=1, keepdim=True)
         combined = torch.cat([avg_out, max_out], dim=1)
-        attn = self.sigmoid(self.conv(combined))
+        
+        # Multi-scale attention
+        attn3 = self.conv3x3(combined)
+        attn5 = self.conv5x5(combined)
+        attn7 = self.conv7x7(combined)
+        
+        # Adaptive fusion
+        weights = torch.softmax(self.alpha, dim=0)
+        attn = weights[0] * attn3 + weights[1] * attn5 + weights[2] * attn7
+        attn = self.sigmoid(attn)
+        
         return x * attn
 
 
 class CSAM(nn.Module):
     """
-    Channel-Spatial Attention Module.
-    Applies channel attention then spatial attention sequentially.
+    Channel-Spatial Attention Module with Multi-Scale Spatial Attention.
+    Applies channel attention then multi-scale spatial attention sequentially.
     """
 
-    def __init__(self, channels: int, reduction: int = 4, kernel_size: int = 7):
+    def __init__(self, channels: int, reduction: int = 4):
         super().__init__()
         self.channel_attn = ChannelAttention(channels, reduction)
-        self.spatial_attn = SpatialAttention(kernel_size)
+        self.spatial_attn = MultiScaleSpatialAttention(channels)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.channel_attn(x)
