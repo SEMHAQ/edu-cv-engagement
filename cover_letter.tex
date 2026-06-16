@@ -7,29 +7,32 @@
 
 \begin{document}
 
-\begin{letter}{Editor-in-Chief \\ Electronics \\ MDPI}
+\begin{letter}{Editor-in-Chief \\ Applied Sciences \\ MDPI}
 
 \opening{Dear Editor,}
 
-I am pleased to submit our manuscript entitled ``Temporal Attention-Enhanced Lightweight CNN for Student Engagement Detection on Edge Devices'' for consideration for publication in \textit{Electronics}.
+I am pleased to submit our manuscript entitled ``Temporal Attention-Enhanced Lightweight CNN for Student Engagement Detection on Edge Devices'' for consideration for publication in \textit{Applied Sciences}.
 
-This paper proposes a novel framework combining:
+This paper proposes a novel lightweight framework for real-time student engagement detection on edge devices, with three key contributions:
+
 \begin{enumerate}
-    \item A multi-scale Channel-Spatial Attention Module (CSAM) with parallel 3×3, 5×5, 7×7 convolutions and adaptive fusion.
-    \item A BiLSTM-based temporal aggregation module for video-level engagement prediction.
-    \item Deployment-oriented evaluation on edge hardware.
+    \item A multi-scale Channel-Spatial Attention Module (CSAM) with parallel 3×3, 5×5, 7×7 convolutions and adaptive fusion, designed for mobile architectures.
+    \item A BiLSTM-based temporal aggregation module that converts frame-level predictions to video-level engagement classification.
+    \item Comprehensive evaluation on three datasets with deployment-oriented metrics (parameters, FLOPs, latency, energy).
 \end{enumerate}
 
-Key results:
+Key results demonstrate the effectiveness of temporal modeling:
 \begin{itemize}
-    \item FER2013: 70.5\% accuracy (5-fold CV)
-    \item CK+ cross-dataset: 71.9\% accuracy
+    \item FER2013: 70.5\% accuracy (5-fold CV, 1.26M parameters)
+    \item CK+ cross-dataset: 71.9\% accuracy (without fine-tuning)
     \item DAiSEE: 94.8\% video-level accuracy (vs 61.2\% frame-level)
 \end{itemize}
 
-The temporal aggregation module dramatically improves video-level performance, demonstrating that temporal modeling is essential for engagement detection. The complete pipeline runs at 53 fps on GPU, suitable for real-time classroom deployment.
+The dramatic improvement from frame-level to video-level (61.2\% → 94.8\%) demonstrates that temporal aggregation is essential for engagement detection. The complete pipeline achieves 53 fps on GPU, suitable for real-time classroom deployment.
 
-Both authors have approved the manuscript and declare no conflicts of interest. I look forward to your decision.
+Both authors have read and approved the manuscript. The work has not been published elsewhere and is not under consideration by another journal. We declare no conflicts of interest.
+
+I look forward to your decision.
 
 \closing{Sincerely,}
 
