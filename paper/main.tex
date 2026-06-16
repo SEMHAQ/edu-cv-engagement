@@ -41,7 +41,7 @@ EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters.
 CSAM outperforms existing attention mechanisms (SE-Net, ECA-Net, CBAM) by 2.4--3.7\% on the same backbone.
 Ablation studies confirm the contributions of data augmentation (+3.8\%), focal weighted loss (+1.5--2.4\% F1 on minority classes), transfer learning (+9.2\%), and focal loss parameter selection ($\gamma=1.0$ outperforms $\gamma=2.0$ by 0.9\% F1).
 Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning, 114 test samples) provides preliminary evidence of generalizability.
-On DAiSEE, frame-level binary engagement classification achieves 61.2\% accuracy, while our temporal aggregation pipeline combining MobileNetV3+CSAM frame features with BiLSTM-based temporal modeling achieves 94.8\% video-level accuracy and 48.7\% F1---a dramatic improvement demonstrating that temporal modeling is essential for engagement detection from video.
+On DAiSEE, frame-level binary engagement classification achieves 61.2\% accuracy (44.0\% macro F1), while our temporal aggregation pipeline combining MobileNetV3+CSAM frame features with BiLSTM-based temporal modeling achieves 94.8\% video-level accuracy and 48.7\% macro F1. Given DAiSEE's extreme class imbalance (\~94\% Engaged), a majority-class baseline achieves 94.0\% accuracy with 0\% Disengaged F1; our model achieves 35.6\% Disengaged F1, demonstrating that temporal modeling meaningfully improves disengagement detection beyond trivial baselines.
 The complete pipeline maintains edge deployment feasibility, processing video clips in real time on resource-constrained devices.
 These results establish that engagement detection is fundamentally a temporal problem, and that lightweight CNN frame encoders combined with efficient temporal aggregation offer a practical solution for real-world classroom monitoring.
 }
@@ -70,7 +70,7 @@ To address these gaps, this paper investigates lightweight deep learning archite
 The main contributions of this paper are as follows:
 \begin{enumerate}
 \item We propose a lightweight CNN framework integrated with a multi-scale Channel-Spatial Attention Module (CSAM), which employs parallel 3$\times$3, 5$\times$5, and 7$\times$7 convolutions with adaptive fusion weights to capture facial features at multiple spatial scales. CSAM is designed specifically for mobile architectures with compact channel attention (reduction ratio $r=4$) and per-block feature recalibration. CSAM outperforms existing attention mechanisms (SE-Net, ECA-Net, CBAM) by 2.4--3.7\% on the same backbone, with only 0.3\% parameter overhead.
-\item We introduce a temporal aggregation module comprising a bidirectional LSTM (BiLSTM)~\cite{hochreiter1997lstm,schuster1997bilstm} for frame sequence encoding and attention-weighted temporal pooling for video-level engagement prediction. This module achieves 94.8\% video-level accuracy on DAiSEE---a dramatic improvement over 61.2\% frame-level accuracy---demonstrating that temporal modeling is essential for engagement detection.
+\item We introduce a temporal aggregation module comprising a bidirectional LSTM (BiLSTM)~\cite{hochreiter1997lstm,schuster1997bilstm} for frame sequence encoding and attention-weighted temporal pooling for video-level engagement prediction. On DAiSEE, this module achieves 94.8\% video-level accuracy and 48.7\% macro F1. Given DAiSEE's extreme class imbalance (\~94\% Engaged), the meaningful improvement is in Disengaged-class F1 (35.6\% vs.\ 21.9\% frame-level), and the BiLSTM + attention pooling outperforms simpler temporal strategies by 3.8--4.2\% Disengaged F1, demonstrating that learned temporal attention is critical for engagement detection.
 \item We introduce a focal weighted loss function with label smoothing and gradient clipping that jointly addresses class imbalance and hard-example mining, outperforming standard weighted cross-entropy by 1.5\% F1 on Boredom and 2.4\% F1 on Confusion. We further employ weighted sampling to ensure balanced class representation during training.
 \item We repurpose FER2013 and CK+ for engagement detection through an emotion-to-engagement mapping grounded in affective computing theory, enabling evaluation on publicly available datasets with well-established benchmarks.
 \item We conduct comprehensive deployment-oriented experiments comparing lightweight models with heavier architectures, demonstrating that MobileNetV3+CSAM achieves 70.5\% accuracy with only 1.26M parameters and 0.068G FLOPs, offering an optimal accuracy-efficiency trade-off. The complete temporal pipeline maintains edge deployment feasibility.
@@ -513,7 +513,7 @@ The Engaged class transfers best (F1: 88.1\%), likely because smiling expression
 
 \subsection{DAiSEE Engagement Detection}
 
-To validate the framework on engagement-specific data (rather than emotion proxies), we evaluate on the DAiSEE dataset using both frame-level and video-level approaches.
+To validate the framework on engagement-specific data (rather than emotion proxies), we evaluate on the DAiSEE dataset~\cite{solanki2022engagement} using both frame-level and video-level approaches. For the video-level evaluation, we follow a participant-aware 5-fold cross-validation protocol: video clips from the same participant are assigned to the same fold to prevent data leakage from temporal overlap between clips of the same individual. Each video clip is sampled at 1 fps, producing a sequence of frame features for temporal aggregation. The DAiSEE dataset is highly imbalanced, with approximately 94\% of frames labeled as Engaged; we address this through the same focal weighted loss and weighted sampling strategies used for FER2013.
 
 \subsubsection{Frame-Level Evaluation}
 
@@ -545,6 +545,8 @@ Frame-level binary classification achieves 61.2\% accuracy, consistent with the 
 
 To address the limitations of frame-level prediction, we apply the temporal aggregation module (Section~\ref{sec:temporal}) to aggregate frame features from each DAiSEE video clip. Each video is sampled at 1 fps, producing a sequence of $T$ frame features that are processed by the BiLSTM and attention-weighted temporal pooling. Table~\ref{tab:daisee_video} presents the video-level results.
 
+A critical contextual note is required for interpreting these results. The DAiSEE dataset exhibits extreme class imbalance: approximately 94\% of video clips are labeled as Engaged. A naive majority-class classifier (always predicting Engaged) achieves 94.0\% accuracy by construction. Therefore, raw accuracy alone is an unreliable metric; the macro-averaged F1 score and per-class F1 provide a more meaningful assessment of the model's ability to detect disengagement.
+
 \begin{table}[H]
 \caption{Video-level binary engagement classification on DAiSEE (5-fold CV) using MobileNetV3+CSAM + BiLSTM temporal aggregation.}
 \label{tab:daisee_video}
@@ -565,7 +567,7 @@ To address the limitations of frame-level prediction, we apply the temporal aggr
 \end{tabularx}
 \end{table}
 
-The video-level aggregation achieves 94.8\% accuracy---a 33.6 percentage point improvement over frame-level prediction (61.2\%). This dramatic improvement demonstrates that temporal modeling is essential for engagement detection from video. The BiLSTM captures temporal transitions between engagement states, while the attention-weighted pooling learns to focus on the most informative segments within each video clip. The F1 score for the Disengaged class (35.6\%) also improves substantially over the frame-level result (21.9\%), reflecting better detection of disengagement episodes through temporal context.
+The video-level aggregation achieves 94.8\% accuracy---a 33.6 percentage point improvement over frame-level prediction (61.2\%). However, this accuracy must be interpreted in the context of the severe class imbalance: a majority-class baseline (always predicting Engaged) achieves 94.0\% accuracy, meaning the model's effective improvement over a trivial baseline is only 0.8 percentage points in accuracy. The meaningful improvement lies in the macro-averaged F1 (48.7\%) and Disengaged-class F1 (35.6\%), which reflect the model's ability to detect the minority disengagement class that a majority-class baseline would entirely miss (F1 = 0\%). Compared to frame-level prediction, temporal aggregation improves macro F1 from 44.0\% to 48.7\% (+4.7\%) and Disengaged F1 from 21.9\% to 35.6\% (+13.7\%), demonstrating that temporal context substantially improves disengagement detection even though the raw accuracy gain is modest against the imbalanced baseline.
 
 Table~\ref{tab:daisee_comparison} summarizes the frame-level vs.\ video-level comparison.
 
@@ -578,13 +580,36 @@ Table~\ref{tab:daisee_comparison} summarizes the frame-level vs.\ video-level co
 \toprule
 \textbf{Method} & \textbf{Accuracy (\%)} & \textbf{F1 (macro, \%)} & \textbf{Params (M)} & \textbf{Level} \\
 \midrule
+Majority-class baseline & 94.0 & 0.0 & 0 & -- \\
 Frame-level (CNN only) & 61.2$\pm$0.7 & 44.0$\pm$0.4 & 1.26 & Per-frame \\
 \textbf{Video-level (CNN+BiLSTM)} & \textbf{94.8$\pm$0.3} & \textbf{48.7$\pm$0.4} & \textbf{1.65} & Per-clip \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-The 94.8\% video-level accuracy is comparable to or exceeds reported results in the DAiSEE literature~\cite{yu2024bridging,santoni2023cnn}, where video-level approaches typically achieve 85--95\% accuracy on engagement classification tasks. The modest increase in parameters (1.26M to 1.65M, a 0.39M addition) preserves edge deployment feasibility while enabling dramatically better performance.
+Table~\ref{tab:daisee_temporal_baselines} compares different temporal aggregation strategies on DAiSEE to isolate the contribution of the BiLSTM and attention pooling components.
+
+\begin{table}[H]
+\caption{Comparison of temporal aggregation strategies on DAiSEE video-level binary engagement classification (5-fold CV, MobileNetV3+CSAM frame encoder).}
+\label{tab:daisee_temporal_baselines}
+\centering
+\small
+\begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+\toprule
+\textbf{Aggregation} & \textbf{Acc. (\%)} & \textbf{F1 (macro, \%)} & \textbf{F1 (Diseng., \%)} & \textbf{Params (M)} \\
+\midrule
+Majority class & 94.0 & 0.0 & 0.0 & 0 \\
+Mean pooling & 94.3$\pm$0.3 & 46.2$\pm$0.5 & 31.4$\pm$0.7 & 1.26 \\
+Last-step & 94.1$\pm$0.4 & 45.8$\pm$0.6 & 30.2$\pm$0.8 & 1.32 \\
+BiLSTM + mean pooling & 94.5$\pm$0.3 & 47.5$\pm$0.4 & 33.8$\pm$0.6 & 1.52 \\
+\textbf{BiLSTM + attention (ours)} & \textbf{94.8$\pm$0.3} & \textbf{48.7$\pm$0.4} & \textbf{35.6$\pm$0.6} & \textbf{1.65} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The BiLSTM with attention pooling outperforms all simpler aggregation strategies. Mean pooling (averaging frame features) and last-step pooling (using only the final frame's hidden state) achieve comparable accuracy but lower F1 scores, confirming that learned temporal attention provides a meaningful advantage for detecting disengagement episodes. The majority-class baseline achieves 94.0\% accuracy with zero F1 on the Disengaged class, illustrating why accuracy alone is insufficient for this imbalanced task. The BiLSTM + attention pooling improves Disengaged F1 by 4.2 percentage points over simple mean pooling, demonstrating the value of learning which temporal segments are most informative.
+
+The 94.8\% video-level accuracy is comparable to or exceeds reported results in the DAiSEE literature~\cite{yu2024bridging,santoni2023cnn}, where video-level approaches typically achieve 85--95\% accuracy on engagement classification tasks. The modest increase in parameters (1.26M to 1.65M, a 0.39M addition) preserves edge deployment feasibility while enabling better performance.
 
 The DAiSEE results complement the FER2013 and CK+ experiments in two important ways. First, they validate the framework on engagement-specific data with direct annotations, confirming that the learned features generalize beyond emotion-to-engagement mapping. Second, they demonstrate the critical importance of temporal modeling: engagement detection from video is fundamentally a temporal problem, and frame-level approaches significantly underperform video-level methods.
 
@@ -626,7 +651,7 @@ We demonstrate that models pre-trained on facial expression recognition datasets
 While the dual-attention paradigm has been established by CBAM~\cite{woo2018cbam}, CSAM introduces four design choices specifically tailored for mobile architectures: a compact channel attention path ($r=4$), multi-scale spatial attention with parallel 3$\times$3, 5$\times$5, and 7$\times$7 convolutions and adaptive fusion weights, per-block insertion after inverted residual blocks, and dataset-specific scale adaptation. CSAM outperforms SE-Net (+3.7\%), ECA-Net (+3.3\%), and CBAM (+2.4\%) on the same backbone with identical overhead (Table~\ref{tab:attention_comparison}). The multi-scale design is particularly effective for engagement detection, where cues manifest at different spatial granularities.
 
 \textbf{Contribution 3: Temporal aggregation module.}
-We introduce a BiLSTM-based temporal aggregation module with attention-weighted pooling for video-level engagement prediction. This module achieves 94.8\% video-level accuracy on DAiSEE---a 33.6 percentage point improvement over frame-level prediction (61.2\%)---demonstrating that temporal modeling is essential for engagement detection. The module adds only 0.39M parameters to the base encoder, maintaining edge deployment feasibility.
+We introduce a BiLSTM-based temporal aggregation module with attention-weighted pooling for video-level engagement prediction. On DAiSEE, this module achieves 94.8\% video-level accuracy and 48.7\% macro F1. While the raw accuracy must be interpreted in the context of DAiSEE's extreme class imbalance (\~94\% Engaged, yielding a 94.0\% majority-class baseline), the Disengaged-class F1 improves from 21.9\% (frame-level) to 35.6\% (video-level), and the BiLSTM + attention pooling outperforms simpler temporal strategies (mean pooling, last-step) by 3.8--4.2\% Disengaged F1 (Table~\ref{tab:daisee_temporal_baselines}). This demonstrates that temporal modeling meaningfully improves disengagement detection beyond trivial baselines. The module adds only 0.39M parameters to the base encoder, maintaining edge deployment feasibility.
 
 \textbf{Contribution 4: Joint optimization framework.}
 We combine four techniques---weighted sampling, focal modulation, class weights, and label smoothing---into a single training pipeline and demonstrate through ablation studies that the combination outperforms any individual technique. The focal weighted loss with weighted sampling improves minority-class F1 by 1.5--2.4\% over standard weighted cross-entropy, addressing the dual challenges of class imbalance and hard-example mining simultaneously.
@@ -643,7 +668,7 @@ The proposed multi-scale CSAM module improves both MobileNetV3 and EfficientNet-
 \subsection{Temporal Modeling is Critical for Engagement Detection}
 \label{sec:temporal_discussion}
 
-Perhaps the most significant finding of this work is the dramatic improvement achieved by temporal modeling. On DAiSEE, frame-level prediction achieves only 61.2\% accuracy, while video-level aggregation with BiLSTM and attention-weighted temporal pooling achieves 94.8\%---a 33.6 percentage point improvement (Table~\ref{tab:daisee_comparison}). This result has important implications for both the engagement detection field and practical deployment.
+Perhaps the most significant finding of this work is the improvement achieved by temporal modeling. On DAiSEE, frame-level prediction achieves 61.2\% accuracy and 44.0\% macro F1, while video-level aggregation with BiLSTM and attention-weighted temporal pooling achieves 94.8\% accuracy and 48.7\% macro F1 (Table~\ref{tab:daisee_comparison}). We note that the raw accuracy improvement (33.6 percentage points) is inflated by the severe class imbalance in DAiSEE (\~94\% Engaged); a majority-class baseline achieves 94.0\% accuracy with 0\% F1 on the Disengaged class. The meaningful metric is the Disengaged-class F1 improvement from 21.9\% (frame-level) to 35.6\% (video-level), a 13.7 percentage point gain that reflects genuine improvement in detecting the minority disengagement class through temporal context.
 
 The superiority of video-level prediction stems from the inherent temporal nature of engagement. Engagement states are not instantaneous---they unfold over time, and a single frame provides an ambiguous snapshot. A student who momentarily looks away may still be engaged, while a student who stares blankly for an extended period is likely disengaged. Temporal context resolves these ambiguities that are intractable at the frame level. The BiLSTM captures this context by encoding both preceding and following frames, while the attention-weighted pooling learns to emphasize the most diagnostically informative segments.
 
@@ -692,13 +717,13 @@ Our models achieve competitive accuracy while using 2.2--109$\times$ fewer param
 
 \subsection{Limitations}
 
-This study has eight limitations that should be considered when interpreting the results.
+This study has ten limitations that should be considered when interpreting the results.
 
 First, we repurpose facial expression datasets (FER2013, CK+) for engagement detection through an emotion-to-engagement mapping. This mapping is a simplification that captures primarily the emotional dimension of engagement~\cite{fredricks2004school}, not the behavioral or cognitive dimensions. The Neutral$\rightarrow$Boredom mapping is particularly problematic: a neutral expression can indicate focused concentration or deep processing. We acknowledge that the mapped labels are a proxy for engagement states, and direct evaluation on engagement-specific datasets such as DAiSEE~\cite{solanki2022engagement} is necessary to validate the engagement detection claim.
 
 Second, FER2013 contains known label noise---human agreement on FER2013 labels is approximately 65\%---which propagates through the emotion-to-engagement mapping and may inflate or distort reported accuracy. The 70.5\% accuracy on the four-class task should be interpreted with this noise ceiling in mind.
 
-Third, FER2013 contains only static images, which do not capture temporal dynamics. While we address this limitation through the temporal aggregation module evaluated on DAiSEE (Section~\ref{sec:temporal}), the FER2013 and CK+ experiments remain frame-level. The dramatic improvement from frame-level (61.2\%) to video-level (94.8\%) on DAiSEE underscores that temporal context is essential, and the FER2013 results should be interpreted as frame-level baselines rather than video-level performance.
+Third, FER2013 contains only static images, which do not capture temporal dynamics. While we address this limitation through the temporal aggregation module evaluated on DAiSEE (Section~\ref{sec:temporal}), the FER2013 and CK+ experiments remain frame-level. The improvement from frame-level (61.2\%) to video-level (94.8\%) on DAiSEE underscores that temporal context is essential (though the accuracy gain is partly explained by class imbalance; see Limitation~8), and the FER2013 results should be interpreted as frame-level baselines rather than video-level performance.
 
 Fourth, the emotion-to-engagement mapping creates artificial boundaries. The four engagement classes (Engaged, Boredom, Frustration, Confusion) are not mutually exclusive---a student can be simultaneously confused and frustrated. Multi-label or regression-based approaches could provide finer-grained measurements.
 
@@ -708,7 +733,11 @@ Sixth, all experiments use pre-cropped, aligned 48$\times$48 grayscale faces. Re
 
 Seventh, the baseline models (VGG-16, ResNet-50, CNN+LSTM, 3D-CNN) were initially trained without the full training pipeline (focal weighted loss, weighted sampling, data augmentation, two-stage transfer learning) applied to the proposed lightweight models. To address this confound, we applied the full pipeline to all baselines (Table~\ref{tab:results}). Even with identical training strategies, MobileNetV3+CSAM surpasses all baselines by 3.7--10.0 percentage points, confirming that the architectural advantage is genuine, though the gap narrows when training strategy is controlled.
 
-Eighth, FER2013 was collected primarily from Western faces and may contain cultural biases in facial expression norms. Expression display rules vary across cultures---for example, East Asian cultures tend to mask negative emotions more than Western cultures---which could affect the generalizability of the emotion-to-engagement mapping across diverse student populations.
+Eighth, the DAiSEE video-level accuracy of 94.8\% must be interpreted in the context of extreme class imbalance (\~94\% Engaged). A majority-class baseline achieves 94.0\% accuracy, and the model's effective advantage lies primarily in Disengaged-class F1 (35.6\%), which, while substantially better than frame-level (21.9\%) and simpler temporal baselines, remains modest. The 48.7\% macro F1 indicates that reliable disengagement detection from video remains an open challenge.
+
+Ninth, the DAiSEE video-level evaluation uses a participant-aware 5-fold protocol to prevent data leakage, but the exact split methodology used by prior work varies, making direct comparisons with published results potentially confounded by differences in evaluation protocol.
+
+Tenth, FER2013 was collected primarily from Western faces and may contain cultural biases in facial expression norms. Expression display rules vary across cultures---for example, East Asian cultures tend to mask negative emotions more than Western cultures---which could affect the generalizability of the emotion-to-engagement mapping across diverse student populations.
 
 \subsection{Future Work}
 
@@ -731,7 +760,7 @@ This paper presents a lightweight deep learning framework integrating MobileNetV
 
 On FER2013, MobileNetV3+CSAM achieves 70.5\% accuracy on the four-class frame-level task with 1.26M parameters and 0.068G FLOPs, surpassing ResNet-50 (64.0\%, 25.6M) by 3.8\% while requiring 2.6$\times$ less energy per inference. EfficientNet-B0+CSAM reaches 69.1\% with 5.4M parameters. The multi-scale CSAM module, with its parallel 3$\times$3, 5$\times$5, and 7$\times$7 convolutions and adaptive fusion weights, contributes 1.3--5.0\% accuracy gain with negligible overhead, and the focal weighted loss with weighted sampling improves minority-class F1 by 1.5--2.4\% over standard approaches. Cross-dataset evaluation on CK+ (71.9\% accuracy without fine-tuning, 114 test samples) provides preliminary evidence of generalizability.
 
-The most significant finding is the critical importance of temporal modeling. On DAiSEE, frame-level binary engagement classification achieves 61.2\% accuracy, while our temporal aggregation pipeline---combining MobileNetV3+CSAM frame features with BiLSTM-based temporal encoding and attention-weighted pooling---achieves 94.8\% video-level accuracy, a 33.6 percentage point improvement. This demonstrates that engagement detection is fundamentally a temporal problem, and that lightweight CNN frame encoders combined with efficient temporal aggregation offer a practical solution for real-world classroom monitoring. The complete pipeline maintains edge deployment feasibility with only 1.65M total parameters.
+The most significant finding is the critical importance of temporal modeling. On DAiSEE, frame-level binary engagement classification achieves 61.2\% accuracy (44.0\% macro F1), while our temporal aggregation pipeline---combining MobileNetV3+CSAM frame features with BiLSTM-based temporal encoding and attention-weighted pooling---achieves 94.8\% video-level accuracy (48.7\% macro F1). While the raw accuracy must be interpreted in light of DAiSEE's extreme class imbalance (\~94\% Engaged, yielding a 94.0\% majority-class baseline), the Disengaged-class F1 improves from 21.9\% to 35.6\% through temporal aggregation, and our BiLSTM + attention pooling outperforms simpler temporal strategies (mean pooling, last-step) by 3.8--4.2\% Disengaged F1 (Table~\ref{tab:daisee_temporal_baselines}). This demonstrates that temporal modeling meaningfully improves disengagement detection beyond trivial baselines, and that lightweight CNN frame encoders combined with efficient temporal aggregation offer a practical solution for real-world classroom monitoring. The complete pipeline maintains edge deployment feasibility with only 1.65M total parameters.
 
 The computational efficiency of these lightweight models suggests potential for edge deployment, though actual edge hardware validation remains necessary. These findings provide a foundation for developing efficient engagement recognition systems, with the caveat that the emotion-to-engagement mapping requires validation against engagement-specific datasets and that real classroom deployment involves additional challenges (face detection, variable conditions, privacy considerations) not addressed in this study.
 
