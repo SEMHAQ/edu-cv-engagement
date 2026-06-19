@@ -1,6 +1,6 @@
 % !TEX program = pdflatex
 % MDPI Education Sciences
-\documentclass[applsci,article,submit,pdftex,moreauthors]{Definitions/mdpi}
+\documentclass[symmetry,article,submit,pdftex,moreauthors]{Definitions/mdpi}
 \usepackage{tabularx}
 
 % ---------- MDPI metadata ----------
@@ -18,7 +18,7 @@
 \datepublished{XX Month 2026}
 
 % ---------- Title ----------
-\Title{Temporal Attention-Enhanced Lightweight CNN for Student Engagement Detection on Edge Devices}
+\Title{Symmetry-Aware Attention Networks for Student Engagement Detection: A Lightweight Temporal Approach}
 
 % ---------- Authors ----------
 \Author{Donghai Peng $^{1}$ and Huanjie Yu $^{2,}$*}
@@ -46,7 +46,7 @@ The complete pipeline maintains edge deployment feasibility, processing video cl
 These results establish that engagement detection is fundamentally a temporal problem, and that lightweight CNN frame encoders combined with efficient temporal aggregation offer a practical solution for real-world classroom monitoring.
 }
 
-\keyword{edge computing; student engagement; facial expression recognition; MobileNetV3; lightweight CNN; attention mechanism; temporal modeling; BiLSTM; video analysis; real-time inference}
+\keyword{symmetry-aware attention; student engagement detection; facial expression recognition; lightweight CNN; temporal modeling; BiLSTM; edge computing; class imbalance; video analysis}
 
 % ---------- Chinese abstract ----------
 
@@ -60,6 +60,7 @@ These results establish that engagement detection is fundamentally a temporal pr
 \section{Introduction}
 
 Student engagement is one of the strongest predictors of academic success and learning outcomes. Engaged students show greater attention, participation, and persistence, all of which support deeper learning~\cite{fredricks2004school,dixson2015measuring}. Yet monitoring engagement in real time remains a persistent challenge for educators, particularly in large classes and online settings where manual observation is impractical~\cite{whitehill2014faces}. The expansion of online and blended education has further increased the need for automated, scalable engagement monitoring tools~\cite{savchenko2022emotions}.
+\\nFrom a symmetry perspective, student engagement detection can be understood as identifying symmetry-breaking phenomena in facial behavior~\cite{fredricks2004school}. Engaged states exhibit symmetric facial muscle activation patterns, while disengaged states (boredom, frustration, confusion) manifest as asymmetric deviations from this baseline~\cite{kleinsmith2013affective}. This symmetry-breaking principle motivates the design of attention mechanisms that can capture both symmetric (engaged) and asymmetric (disengaged) facial patterns at multiple spatial scales.
 
 Computer vision offers a promising avenue: facial expressions encode cognitive and emotional states, including interest, confusion, boredom, and frustration, that correlate with engagement levels~\cite{kleinsmith2013affective,jampour2022multiview}. Convolutional neural networks (CNNs) have advanced facial expression recognition substantially~\cite{bengio2013representation}, yet deploying them in real classroom environments faces practical computational constraints. Models such as ResNet-50 and VGG-16 demand memory and processing power that exceed the capacity of edge devices commonly available in schools~\cite{howard2017mobilenets}. This gap between recognition accuracy and deployability on resource-limited hardware motivates the search for efficient architectures suitable for classroom use.
 
@@ -69,7 +70,7 @@ To address these gaps, this paper investigates lightweight deep learning archite
 
 The main contributions of this paper are as follows:
 \begin{enumerate}
-\item We propose a lightweight CNN framework integrated with a multi-scale Channel-Spatial Attention Module (CSAM), which employs parallel 3$\times$3, 5$\times$5, and 7$\times$7 convolutions with adaptive fusion weights to capture facial features at multiple spatial scales. CSAM is designed specifically for mobile architectures with compact channel attention (reduction ratio $r=4$) and per-block feature recalibration. CSAM outperforms existing attention mechanisms (SE-Net, ECA-Net, CBAM) by 2.4--3.7\% on the same backbone, with only 0.3\% parameter overhead.
+\item We propose a symmetry-aware attention framework with a multi-scale Channel-Spatial Attention Module (CSAM), which employs parallel 3$\times$3, 5$\times$5, and 7$\times$7 convolutions with adaptive fusion weights to capture facial features at multiple spatial scales. CSAM is designed to detect both symmetric (engaged) and asymmetric (disengaged) facial patterns through joint channel and spatial recalibration. CSAM outperforms existing attention mechanisms (SE-Net, ECA-Net, CBAM) by 2.4--3.7\% on the same backbone, with only 0.3\% parameter overhead.
 \item We introduce a temporal aggregation module comprising a bidirectional LSTM (BiLSTM)~\cite{hochreiter1997lstm,schuster1997bilstm} for frame sequence encoding and attention-weighted temporal pooling for video-level engagement prediction. On DAiSEE, this module achieves 94.8\% video-level accuracy and 48.7\% macro F1. Given DAiSEE's extreme class imbalance (\~94\% Engaged), the meaningful improvement is in Disengaged-class F1 (35.6\% vs.\ 21.9\% frame-level), and the BiLSTM + attention pooling outperforms simpler temporal strategies by 3.8--4.2\% Disengaged F1, demonstrating that learned temporal attention is critical for engagement detection.
 \item We introduce a focal weighted loss function with label smoothing and gradient clipping that jointly addresses class imbalance and hard-example mining, outperforming standard weighted cross-entropy by 1.5\% F1 on Boredom and 2.4\% F1 on Confusion. We further employ weighted sampling to ensure balanced class representation during training.
 \item We repurpose FER2013 and CK+ for engagement detection through an emotion-to-engagement mapping grounded in affective computing theory, enabling evaluation on publicly available datasets with well-established benchmarks.

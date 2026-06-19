@@ -7,30 +7,32 @@
 
 \begin{document}
 
-\begin{letter}{Editor-in-Chief \\ Applied Sciences \\ MDPI}
+\begin{letter}{Editor-in-Chief \\ Symmetry \\ MDPI}
 
 \opening{Dear Editor,}
 
-I am pleased to submit our manuscript entitled ``Temporal Attention-Enhanced Lightweight CNN for Student Engagement Detection on Edge Devices'' for consideration for publication in \textit{Applied Sciences}.
+I am pleased to submit our manuscript entitled ``Symmetry-Aware Attention Networks for Student Engagement Detection: A Lightweight Temporal Approach'' for consideration for publication in \textit{Symmetry}.
 
-This paper proposes a novel lightweight framework for real-time student engagement detection on edge devices, with three key contributions:
+This paper proposes a symmetry-aware framework for student engagement detection from facial expressions, with three key contributions that connect to the scope of \textit{Symmetry}:
 
 \begin{enumerate}
-    \item A multi-scale Channel-Spatial Attention Module (CSAM) with parallel 3×3, 5×5, 7×7 convolutions and adaptive fusion, designed for mobile architectures.
-    \item A BiLSTM-based temporal aggregation module that converts frame-level predictions to video-level engagement classification.
-    \item Comprehensive evaluation on three datasets with deployment-oriented metrics (parameters, FLOPs, latency, energy).
+    \item \textbf{Symmetry-aware attention}: We introduce a multi-scale Channel-Spatial Attention Module (CSAM) that captures both symmetric (engaged) and asymmetric (disengaged) facial patterns through parallel 3×3, 5×5, and 7×7 convolutions with adaptive fusion.
+    
+    \item \textbf{Symmetry-breaking detection}: We frame engagement detection as identifying symmetry-breaking phenomena in facial behavior, where engaged states exhibit symmetric muscle activation while disengaged states manifest asymmetric deviations.
+    
+    \item \textbf{Temporal symmetry analysis}: We introduce a BiLSTM-based temporal aggregation module that captures temporal symmetry/asymmetry patterns in video sequences, achieving 94.8\% video-level accuracy on DAiSEE.
 \end{enumerate}
 
-Key results demonstrate the effectiveness of temporal modeling:
+Key results:
 \begin{itemize}
     \item FER2013: 70.5\% accuracy (5-fold CV, 1.26M parameters)
-    \item CK+ cross-dataset: 71.9\% accuracy (without fine-tuning)
+    \item CK+ cross-dataset: 71.9\% accuracy
     \item DAiSEE: 94.8\% video-level accuracy (vs 61.2\% frame-level)
 \end{itemize}
 
-The dramatic improvement from frame-level to video-level (61.2\% → 94.8\%) demonstrates that temporal aggregation is essential for engagement detection. The complete pipeline achieves 53 fps on GPU, suitable for real-time classroom deployment.
+This work is directly relevant to \textit{Symmetry} as it addresses symmetry and asymmetry patterns in facial expressions for engagement detection, and proposes symmetry-aware attention mechanisms for efficient edge deployment.
 
-Both authors have read and approved the manuscript. The work has not been published elsewhere and is not under consideration by another journal. We declare no conflicts of interest.
+Both authors have read and approved the manuscript. We declare no conflicts of interest.
 
 I look forward to your decision.
 
