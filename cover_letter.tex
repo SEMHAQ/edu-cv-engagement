@@ -7,30 +7,23 @@
 
 \begin{document}
 
-\begin{letter}{Editor-in-Chief \\ Symmetry \\ MDPI}
+\begin{letter}{Editor-in-Chief \\ Sensors \\ MDPI}
 
 \opening{Dear Editor,}
 
-I am pleased to submit our manuscript entitled ``Symmetry-Aware Attention Networks for Student Engagement Detection: A Lightweight Temporal Approach'' for consideration for publication in \textit{Symmetry}.
+I am pleased to submit our manuscript entitled ``A Real-Time Visual Sensing System for Classroom Engagement Monitoring Using Multi-Scale Temporal Neural Networks'' for consideration for publication in \textit{Sensors}.
 
-This paper proposes a symmetry-aware framework for student engagement detection from facial expressions, with three key contributions that connect to the scope of \textit{Symmetry}:
+This paper presents a camera-based visual sensing system for automated classroom engagement monitoring. The system processes video streams from standard classroom cameras using a lightweight neural network architecture, providing real-time engagement detection without requiring specialized hardware or wearable sensors.
 
+Key contributions relevant to \textit{Sensors}:
 \begin{enumerate}
-    \item \textbf{Symmetry-aware attention}: We introduce a multi-scale Channel-Spatial Attention Module (CSAM) that captures both symmetric (engaged) and asymmetric (disengaged) facial patterns through parallel 3×3, 5×5, and 7×7 convolutions with adaptive fusion.
-    
-    \item \textbf{Symmetry-breaking detection}: We frame engagement detection as identifying symmetry-breaking phenomena in facial behavior, where engaged states exhibit symmetric muscle activation while disengaged states manifest asymmetric deviations.
-    
-    \item \textbf{Temporal symmetry analysis}: We introduce a BiLSTM-based temporal aggregation module that captures temporal symmetry/asymmetry patterns in video sequences, achieving 94.8\% video-level accuracy on DAiSEE.
-\end{enumerate}
-
-Key results:
-\begin{itemize}
-    \item FER2013: 70.5\% accuracy (5-fold CV, 1.26M parameters)
-    \item CK+ cross-dataset: 71.9\% accuracy
-    \item DAiSEE: 94.8\% video-level accuracy (vs 61.2\% frame-level)
+    \item \textbf{Visual sensing system design}: A complete pipeline from camera input to engagement classification, optimized for real-time classroom deployment.
+    \item \textbf{Multi-scale attention}: Parallel 3×3, 5×5, and 7×7 convolutions with adaptive fusion for robust facial expression analysis across different scales.
+    \item \textbf{Temporal aggregation}: BiLSTM-based video-level prediction achieving 94.8\% accuracy on DAiSEE, demonstrating the importance of temporal analysis in visual sensing systems.
+    \item \textbf{Edge deployment}: 1.26M parameters, 53 fps on standard GPU, suitable for resource-constrained classroom environments.
 \end{itemize}
 
-This work is directly relevant to \textit{Symmetry} as it addresses symmetry and asymmetry patterns in facial expressions for engagement detection, and proposes symmetry-aware attention mechanisms for efficient edge deployment.
+The system is evaluated on three benchmark datasets (FER2013, CK+, DAiSEE) with comprehensive ablation studies. Results demonstrate that camera-based visual sensing can provide practical, non-intrusive engagement monitoring for educational environments.
 
 Both authors have read and approved the manuscript. We declare no conflicts of interest.
 
